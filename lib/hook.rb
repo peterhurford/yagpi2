@@ -49,8 +49,8 @@ end
 # Github sends a strange param set to ping your app.
 # This lets us respond to that ping.
 def is_github_ping?(params)
-  ZEN = "Responsive is better than fast."
-  params["zen"].present? && params["zen"] == ZEN
+  zen = "Responsive is better than fast."
+  params["zen"].present? && params["zen"] == zen
 end
 
 def receive_ping
