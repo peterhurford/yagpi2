@@ -1,4 +1,4 @@
-module Github
+class Github
   def self.connect_to_github!
     error!('GITHUB_USERNAME not set', 500) unless ENV['GITHUB_USERNAME'].present?
     error!('GITHUB_PASSWORD not set', 500) unless ENV['GITHUB_PASSWORD'].present?

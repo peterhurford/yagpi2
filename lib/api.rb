@@ -1,10 +1,14 @@
-module Api
+class Api
   def self.receive_ping
-    { status: "ping_received" }
+    { "status" => "ping_received" }
+  end
+
+  def self.halt!(*response)
+    throw(:halt, response)
   end
 
   def self.error!(error_message, error_type)
-    halt(error_type,
+    halt!(error_type,
       {'Content-Type' => 'application/json'}, {
         error: error_type,
         message: error_message
@@ -12,7 +16,7 @@ module Api
   end
 
   def self.receive_hook_and_return_data!(params)
-    return(receive_ping) if is_github_ping?(params)
+    return(receive_ping.to_json) if Github.is_github_ping?(params)
 
     #TODO: Mirror issues
     github_payload = params["pull_request"]

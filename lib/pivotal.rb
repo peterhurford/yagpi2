@@ -1,4 +1,4 @@
-module Pivotal
+class Pivotal
   def self.regex_for_pivotal_id(what)
     what[/[0-9]{7,}/]
   end
