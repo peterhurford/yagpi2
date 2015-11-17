@@ -1,4 +1,5 @@
 require "sinatra"
+require "sinatra/activerecord"
 require "json"
 
 require "./lib/hook"
