@@ -1,8 +1,12 @@
 require "sinatra"
 require "./lib/hook"
 
+get "/" do
+  receive_ping
+end
+
 get "/ping" do
-  "OK"
+  receive_ping
 end
 
 post '/github_hook' do

@@ -46,12 +46,11 @@ def nag_for_a_pivotal_id!(github_pr_url)
   false
 end
 
-def zen
-  "Responsive is better than fast."
-end
-
-def is_ping?(params)
-  params["zen"].present? && params["zen"] == zen
+# Github sends a strange param set to ping your app.
+# This lets us respond to that ping.
+def is_github_ping?(params)
+  ZEN = "Responsive is better than fast."
+  params["zen"].present? && params["zen"] == ZEN
 end
 
 def receive_ping
@@ -67,7 +66,7 @@ def error!(error_message, error_type)
 end
 
 def receive_hook_and_return_data!(params)
-  return(receive_ping) if is_ping?(params)
+  return(receive_ping) if is_github_ping?(params)
 
   #TODO: Mirror issues
   github_payload = params["pull_request"]
