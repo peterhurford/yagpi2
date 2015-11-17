@@ -12,7 +12,7 @@ class TestTest < Minitest::Test
   def test_ping
     get "/ping"
     assert(last_response.ok?)
-    assert_equal(receive_ping.to_json, last_response.body)
+    assert_equal(Api.receive_ping.to_json, last_response.body)
   end
 end
 
