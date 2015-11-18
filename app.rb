@@ -33,7 +33,7 @@ end
 
 error do
   {
-    message: env['sinatra.error'].message
+    message: env['sinatra.error'].message,
     backtrace: env['sinatra.error'].backtrace
   }.to_json
 end
