@@ -15,10 +15,10 @@ get "/ping" do
 end
 
 post '/github_hook' do
-  payload = JSON.parse(request.body.read)
+  payload = request.body.read
   verify_signature(payload) unless ENV["RACK_ENV"] == "test"
   Api.error!('No payload', 500) unless payload.present?
-  Api.receive_hook_and_return_data!(payload)
+  Api.receive_hook_and_return_data!(JSON.parse(payload))
 end
 
 def verify_signature(payload)
@@ -32,5 +32,8 @@ def verify_signature(payload)
 end
 
 error do
-  env['sinatra.error'].backtrace.to_json
+  {
+    message: env['sinatra.error'].message
+    backtrace: env['sinatra.error'].backtrace
+  }.to_json
 end
