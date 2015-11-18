@@ -116,6 +116,24 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_pivotal_post_is_parsable
+    with_errors do
+      assert(JSON.parse(Pivotal.pivotal_post_message("108405812", "test.com", "peterhurford", "finishes")).is_a?(Hash))
+    end
+  end
+
+  def test_ignore
+    with_errors do
+      assert_equal("ignore", Api.ignore(complete_params, "1234567")["pivotal_action"])
+    end
+  end
+
+  def test_api_results
+    with_errors do
+      assert_equal("finished", Api.api_results(complete_params, "1234567", "finished")["pivotal_action"])
+    end
+  end
+
   def test_that_it_finishes_an_open_pr
     opening_params = complete_params.tap do |params|
       params["action"] = "opened"
@@ -156,18 +174,6 @@ class TestTest < Minitest::Test
         end
       end
     end
-  end
-
-  def test_pivotal_post_is_parsable
-    assert(JSON.parse(Pivotal.pivotal_post_message("108405812", "test.com", "peterhurford", "finishes")).is_a?(Hash))
-  end
-
-  def test_ignore
-    assert_equal("ignore", Api.ignore(complete_params, "1234567")["pivotal_action"])
-  end
-
-  def test_api_results
-    assert_equal("finished", Api.api_results(complete_params, "1234567", "finished")["pivotal_action"])
   end
 end
 
