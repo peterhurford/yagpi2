@@ -22,7 +22,7 @@ post '/github_hook' do
     Api.error!('No payload', 500) unless payload.present?
     Api.receive_hook_and_return_data!(payload)
   rescue exception => e
-    e.to_json
+    Api.error!(e, 500)
   end
 end
 
