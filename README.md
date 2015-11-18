@@ -30,7 +30,9 @@ Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 
 2.) Host YAGPI on a server.
 
-3.) Set up a GitHub webhook to connect to the hosted domain.
+3.) Set up a GitHub webhook to connect to `/github_hook` on the hosted domain.
+
+![](http://puu.sh/lpqwM/472669578f.png)
 
 The webhook should receive "Pull Request".
 
