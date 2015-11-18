@@ -44,7 +44,15 @@ class Github
 
   # Github sends a strange param set to ping your app.
   # This lets us respond to that ping.
-  def self.is_github_ping?(params)
-    params["zen"].present?
+  def self.is_github_ping?(payload)
+    payload["zen"].present?
+  end
+
+  def self.is_pull_request_action?(payload)
+    payload["pull_request"].present?
+  end
+
+  def self.is_issue_action?(payload)
+    payload["issue"].present?
   end
 end

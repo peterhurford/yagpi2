@@ -1,7 +1,7 @@
+require "./app"
 require "minitest/autorun"
 require "rack/test"
 require "pry"
-require File.expand_path "../../app.rb", __FILE__
 
 ENV["RACK_ENV"] = "test"
 
@@ -42,6 +42,21 @@ class TestTest < Minitest::Test
     get "/ping"
     assert(last_response.ok?)
     assert_equal(Api.receive_ping.to_json, last_response.body)
+  end
+
+  def test_is_github_ping
+    assert(Github.is_github_ping?({"zen" => "zen'd!"}))
+    refute(Github.is_github_ping?({"no_zen" => "no zen 4 u!"}))
+  end
+
+  def test_is_pull_request_action
+    assert(Github.is_pull_request_action?({"pull_request" => "got your action right here!"}))
+    refute(Github.is_pull_request_action?({"issue" => "this is an issue!"}))
+  end
+
+  def test_is_pull_request_action
+    assert(Github.is_issue_action?({"issue" => "this is an issue!"}))
+    refute(Github.is_issue_action?({"pull_request" => "got your action right here!"}))
   end
 
   def test_hook_returns_ping

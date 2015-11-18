@@ -2,8 +2,6 @@ require "sinatra"
 require "sinatra/activerecord"
 require "json"
 
-require "./lib/pivotal"
-require "./lib/github"
 require "./lib/api"
 
 get "/" do

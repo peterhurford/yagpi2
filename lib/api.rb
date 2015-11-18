@@ -1,3 +1,6 @@
+require "./lib/github"
+require "./lib/pivotal"
+
 class Api
   def self.receive_ping
     { "status" => "ping_received" }
@@ -81,9 +84,21 @@ class Api
     }
   end
 
-  #TODO: Mirror issues
+
   def self.receive_hook_and_return_data!(payload)
-    return(receive_ping.to_json) if Github.is_github_ping?(payload)
+    if Github.is_github_ping?(payload)
+      receive_ping
+    elsif Github.is_pull_request_action?(payload)
+      handle_pull_request_action(payload)
+    elsif Github.is_issue_action?(payload)
+      handle_issue_action(payload)
+    else
+      error!("Received a payload that was not a pull request or an issue.", 500)
+    end
+  end
+
+
+  def self.handle_pull_request_action(payload)
     payload = validate_payload(payload)
 
     pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
