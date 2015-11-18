@@ -15,6 +15,5 @@ get "/ping" do
 end
 
 post '/github_hook' do
-  JSON.parse(request.body.read)["zen"].to_json
-  #Api.receive_hook_and_return_data!(params)
+  Api.receive_hook_and_return_data!(JSON.parse(request.body.read))
 end
