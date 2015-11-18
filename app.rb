@@ -32,5 +32,5 @@ def verify_signature(payload)
 end
 
 error do
-  env['sinatra.error'].inspect
+  env['sinatra.error'].backtrace.to_json
 end
