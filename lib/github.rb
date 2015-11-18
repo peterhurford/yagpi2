@@ -18,14 +18,24 @@ class Github
     "No Pivotal ID in a PR is like not having an umbrella when it rains."].sample
   end
 
+  def self.nag_message
+    "#{random_nag} Please update the description of the PR with the Pivotal ID, then close and reopen this PR."
+  end
+
+  def self.parse_github_url(github_pr_url)
+    urlparts = github_pr_url.split('/')
+    "/repos/#{urlparts[3]}/#{urlparts[4]}/issues/#{urlparts[6]}/comments"
+  end
+
   def self.nag_for_a_pivotal_id!(github_pr_url)
     if ENV['POST_TO_GITHUB'] != 1
       connect_to_github!
-      urlparts = github_pr_url.split('/')
-      Octokit.post("/repos/#{urlparts[3]}/#{urlparts[4]}/issues/#{urlparts[6]}/comments", options = { body: "#{random_nag} Please update the description of the PR with the Pivotal ID, then close and reopen this PR." })
-      return true
+      Octokit.post(parse_github_url(github_pr_url),
+        options = { body: nag_message })
+      true
+    else
+      false
     end
-    false
   end
 
   # Github sends a strange param set to ping your app.

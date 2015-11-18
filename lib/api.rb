@@ -1,9 +1,11 @@
 class Api
-  @@raises = false
-
   def self.receive_ping
     { "status" => "ping_received" }
   end
+
+
+  #TODO: Move error handling
+  @@raises = false
 
   def self.set_raises_flag!
     @@raises = true
@@ -29,7 +31,9 @@ class Api
     end
   end
 
+
   def self.validate_payload(payload)
+    error!('No payload', 500) unless payload.present?
     validated_payload = {
       github_body: payload["body"],
       github_branch: payload["head"]["ref"],
@@ -44,39 +48,65 @@ class Api
     validated_payload
   end
 
-  def self.receive_hook_and_return_data!(params)
-    return(receive_ping.to_json) if Github.is_github_ping?(params)
 
-    #TODO: Mirror issues
-    payload = params["pull_request"]
-    error!('No payload', 500) unless payload.present?
+  def self.ignore(payload, pivotal_id)
+    api_results(payload, pivotal_id, "ignored")
+  end
 
-    payload = validate_payload(payload)
+  def self.nag(payload)
+    nag_result = Pivotal.nag_for_a_pivotal_id!(payload["github_pr_url"])
+    yagpi_action_taken = nag_result ? "nag" : "nag disabled"
+    api_results(payload, nil, yagpi_action_taken)
+  end
 
-    pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
-    
-    yagpi_action_taken = "none"
-    if %w(opened reopened closed).include?(payload["github_action"])
-      if pivotal_id.present?
-        if %w(opened reopened).include?(payload["github_action"])
-          change_story_state!(pivotal_id, payload["github_pr_url"], github_author, 'finished')
-          yagpi_action_taken = "finish"
-        elsif payload["github_action"] == "closed"
-          change_story_state!(pivotal_id, payload["github_pr_url"], github_author, 'delivered')
-          yagpi_action_taken = "deliver"
-        end
-      elsif payload["github_action"] != "closed" 
-        o = nag_for_a_pivotal_id!(payload["github_pr_url"])
-        yagpi_action_taken = o ? "nag" : "nag disabled"
-      end
-    end
-    
+  def self.handle_missing_pivotal_id(payload)
+    return(ignore(payload, nil)) if payload["github_action"] == "closed" 
+    nag(payload)
+  end
+
+  def self.is_pr_opening?(action)
+    %w(opened reopened).include?(action)
+  end
+
+  def self.is_pr_closing?(action)
+    action == "closed"
+  end
+
+  def self.is_pr_opening_or_closing?(action)
+    is_pr_opening?(action) || is_pr_closing?(action)
+  end
+
+  def self.api_results(payload, pivotal_id, yagpi_action_taken)
     {
       detected_github_action: payload["github_action"],
       detected_pivotal_id: pivotal_id,
       detected_github_pr_url: payload["github_pr_url"],
-      detected_github_author: github_author,
+      detected_github_author: payload["github_author"],
       pivotal_action: yagpi_action_taken
     }
+  end
+
+  #TODO: Mirror issues
+  def self.receive_hook_and_return_data!(params)
+    return(receive_ping.to_json) if Github.is_github_ping?(params)
+    
+    payload = params["pull_request"]
+    payload = validate_payload(payload)
+
+    yagpi_action_taken = "none"
+
+    pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
+    handle_missing_pivotal_id(payload) unless pivotal_id.present?
+
+    return(ignore(payload, pivotal_id)) unless is_pr_opening_or_closing?(payload["github_action"])
+
+    if is_pr_opening?(payload["github_action"])
+      Pivotal.change_story_state!(pivotal_id, payload["github_pr_url"], payload["github_author"], 'finished')
+      yagpi_action_taken = "finish"
+    elsif is_pr_closing?(payload["github_action"])
+      Pivotal.change_story_state!(pivotal_id, payload["github_pr_url"], payload["github_author"], 'delivered')
+      yagpi_action_taken = "deliver"
+    end
+    api_results(payload, pivotal_id, yagpi_action_taken)
   end
 end
