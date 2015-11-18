@@ -1,3 +1,5 @@
+require "rest-client"
+
 class Pivotal
   def self.regex_for_pivotal_id(what)
     return false if what.nil?
