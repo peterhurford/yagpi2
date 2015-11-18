@@ -34,7 +34,7 @@ class Pivotal
 
   def self.change_story_state!(pivotal_id, github_pr_url, github_author, pivotal_action)
     connect_to_pivotal!
-    Api.error!([pivotal_id, github_pr_url, github_author, pivotal_action].to_json, 101)
+    Api.error!("#{pivotal_id} #{github_pr_url} #{github_author} #{pivotal_action}", 101)
     @pivotal_conn["source_commits"].post(
       pivotal_post_message(pivotal_id, github_pr_url, github_author, pivotal_action))
   end
