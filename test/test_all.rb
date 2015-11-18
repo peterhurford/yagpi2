@@ -157,5 +157,9 @@ class TestTest < Minitest::Test
       end
     end
   end
+
+  def test_pivotal_post_is_parsable
+    assert(JSON.parse(Pivotal.pivotal_post_message("108405812", "test.com", "peterhurford", "finishes")).is_a?(Hash))
+  end
 end
 

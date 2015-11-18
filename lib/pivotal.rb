@@ -28,8 +28,8 @@ class Pivotal
   def self.pivotal_post_message(pivotal_id, github_pr_url, github_author, pivotal_action)
     '{"source_commit":{"commit_id":"","message":"' +
       pivotal_yagpi_comment(pivotal_id, pivotal_action) +
-      ',"url":"' + github_pr_url +
-      ',author:":"' + github_author + '"}}'
+      '","url":"' + github_pr_url +
+      '","author":"' + github_author + '"}}'
   end
 
   def self.change_story_state!(pivotal_id, github_pr_url, github_author, pivotal_action)
