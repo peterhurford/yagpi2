@@ -93,11 +93,65 @@ class TestTest < Minitest::Test
   end
 
   def test_that_it_can_find_a_pivotal_url_in_a_body
-    assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah 1234567 blah blah", "branch_name_here"))
+    with_errors do
+      assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah 1234567 blah blah", "branch_name_here"))
+    end
   end
 
   def test_that_it_can_find_a_pivotal_url_in_a_branch
-    assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah blah blah", "branch_name_here_1234567"))
+    with_errors do
+      assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah blah blah", "branch_name_here_1234567"))
+    end
+  end
+
+  def test_that_it_handles_a_missing_pivotal_id
+    with_errors do
+      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
+        assert_equal("nag", Api.handle_missing_pivotal_id(complete_params)["pivotal_action"])
+      end
+    end
+  end
+
+  def test_that_it_finishes_an_open_pr
+    opening_params = complete_params.tap do |params|
+      params["action"] = "opened"
+      params["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
+        Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
+          assert_equal("finish", Api.receive_hook_and_return_data!({"pull_request" => opening_params})["pivotal_action"])
+        end
+      end
+    end
+  end
+
+  def test_that_it_delivers_a_closed_pr
+    closing_params = complete_params.tap do |params|
+      params["action"] = "closed"
+      params["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
+        Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
+          assert_equal("deliver", Api.receive_hook_and_return_data!({"pull_request" => closing_params})["pivotal_action"])
+        end
+      end
+    end
+  end
+
+  def test_that_it_ignores_otherwise
+    ignorable_params = complete_params.tap do |params|
+      params["action"] = "resynch"
+      params["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
+        Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
+          assert_equal("ignore", Api.receive_hook_and_return_data!({"pull_request" => ignorable_params})["pivotal_action"])
+        end
+      end
+    end
   end
 end
 

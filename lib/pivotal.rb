@@ -1,5 +1,6 @@
 class Pivotal
   def self.regex_for_pivotal_id(what)
+    return false if what.nil?
     what[/[0-9]{7,}/]
   end
 
@@ -8,7 +9,7 @@ class Pivotal
   end
 
   def self.connect_to_pivotal!
-    error!('PIVOTAL_API_KEY not set', 500) unless ENV['PIVOTAL_API_KEY'].present?
+    Api.error!('PIVOTAL_API_KEY not set', 500) unless ENV['PIVOTAL_API_KEY'].present?
     @pivotal_conn ||= RestClient::Resource.new("https://www.pivotaltracker.com/services/v5",
        :headers => {'X-TrackerToken' => ENV['PIVOTAL_API_KEY'], 'Content-Type' => 'application/json'})
   end
