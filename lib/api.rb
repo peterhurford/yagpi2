@@ -90,10 +90,12 @@ class Api
     handle_missing_pivotal_id(payload) unless pivotal_id.present?
 
     if is_pr_opening?(payload["github_action"])
-      Pivotal.change_story_state!(pivotal_id, payload["github_pr_url"], payload["github_author"], 'finished')
+      Pivotal.change_story_state!(pivotal_id,
+        payload["github_pr_url"], payload["github_author"], 'finished')
       yagpi_action_taken = "finish"
     elsif is_pr_closing?(payload["github_action"])
-      Pivotal.change_story_state!(pivotal_id, payload["github_pr_url"], payload["github_author"], 'delivered')
+      Pivotal.change_story_state!(pivotal_id,
+        payload["github_pr_url"], payload["github_author"], 'delivered')
       yagpi_action_taken = "deliver"
     else
       return(ignore(payload, pivotal_id))
