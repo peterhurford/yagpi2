@@ -40,3 +40,5 @@ The webhook should receive "Pull Request".
 ## Customization
 
 Currently YAGPI2 will only implement our rigid workflow, but customization can be added upon request.  You could also fork the repo to change it to implement your own workflow.
+
+:)
