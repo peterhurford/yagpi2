@@ -43,7 +43,6 @@ class Github
   # Github sends a strange param set to ping your app.
   # This lets us respond to that ping.
   def self.is_github_ping?(params)
-    zen = "Responsive is better than fast."
-    params["zen"].present? && params["zen"] == zen
+    params["zen"].present?
   end
 end
