@@ -1,7 +1,9 @@
+require "octokit"
+
 class Github
   def self.connect_to_github!
-    error!('GITHUB_USERNAME not set', 500) unless ENV['GITHUB_USERNAME'].present?
-    error!('GITHUB_PASSWORD not set', 500) unless ENV['GITHUB_PASSWORD'].present?
+    Api.error!('GITHUB_USERNAME not set', 500) unless ENV['GITHUB_USERNAME'].present?
+    Api.error!('GITHUB_PASSWORD not set', 500) unless ENV['GITHUB_PASSWORD'].present?
     Octokit.configure do |c|
       c.login = ENV['GITHUB_USERNAME']
       c.password = ENV['GITHUB_PASSWORD']
@@ -30,7 +32,7 @@ class Github
   end
 
   def self.nag_for_a_pivotal_id!(github_pr_url)
-    if ENV['POST_TO_GITHUB'] != 1
+    if ENV['DONT_POST_TO_GITHUB'] != 1
       connect_to_github!
       Octokit.post(parse_github_url(github_pr_url),
         options = { body: nag_message })
