@@ -53,7 +53,7 @@ class Api
 
     payload = validate_payload(payload)
 
-    pivotal_id = find_pivotal_id(payload["github_body"], github_branch)
+    pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
     
     yagpi_action_taken = "none"
     if %w(opened reopened closed).include?(payload["github_action"])

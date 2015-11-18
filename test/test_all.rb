@@ -91,5 +91,13 @@ class TestTest < Minitest::Test
       assert_error(StandardError, "No author") { Api.validate_payload(no_author_params) }
     end
   end
+
+  def test_that_it_can_find_a_pivotal_url_in_a_body
+    assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah 1234567 blah blah", "branch_name_here"))
+  end
+
+  def test_that_it_can_find_a_pivotal_url_in_a_branch
+    assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah blah blah", "branch_name_here_1234567"))
+  end
 end
 
