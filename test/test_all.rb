@@ -3,6 +3,8 @@ require "rack/test"
 require "pry"
 require File.expand_path "../../app.rb", __FILE__
 
+ENV["RACK_ENV"] = "test"
+
 
 class TestTest < Minitest::Test
   include Rack::Test::Methods
