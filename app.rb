@@ -32,5 +32,5 @@ def verify_signature(payload)
 end
 
 error do
-  env['sinatra.error'].message
+  env['sinatra.error'].inspect
 end
