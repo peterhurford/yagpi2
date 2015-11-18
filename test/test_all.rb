@@ -161,7 +161,9 @@ class TestTest < Minitest::Test
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-          assert_equal("finish", Api.receive_hook_and_return_data!(opening_params)["pivotal_action"])
+          output = Api.receive_hook_and_return_data!(opening_params)
+          assert_equal("pull_request", output["processing_type"])
+          assert_equal("finish", output["pivotal_action"])
         end
       end
     end
