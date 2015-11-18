@@ -18,7 +18,8 @@ post '/github_hook' do
   payload = request.body.read
   verify_signature(payload) unless ENV["RACK_ENV"] == "test"
   Api.error!('No payload', 500) unless payload.present?
-  Api.receive_hook_and_return_data!(JSON.parse(payload))
+  output = Api.receive_hook_and_return_data!(JSON.parse(payload))
+  Api.error!(output, 101)
 end
 
 def verify_signature(payload)
