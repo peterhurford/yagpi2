@@ -64,5 +64,32 @@ class TestTest < Minitest::Test
       assert_error(StandardError, "No action") { Api.validate_payload(no_action_params) }
     end
   end
+
+  def test_params_with_no_branch_does_not_validate
+    with_errors do
+      no_branch_params = complete_params.tap do |params|
+        params["head"]["ref"] = nil
+      end
+      assert_error(StandardError, "No branch") { Api.validate_payload(no_branch_params) }
+    end
+  end
+
+  def test_params_with_no_pr_url_does_not_validate
+    with_errors do
+      no_pr_url_params = complete_params.tap do |params|
+        params["html_url"] = nil
+      end
+      assert_error(StandardError, "No PR URL") { Api.validate_payload(no_pr_url_params) }
+    end
+  end
+
+  def test_params_with_no_author_does_not_validate
+    with_errors do
+      no_author_params = complete_params.tap do |params|
+        params["user"]["login"] = nil
+      end
+      assert_error(StandardError, "No author") { Api.validate_payload(no_author_params) }
+    end
+  end
 end
 
