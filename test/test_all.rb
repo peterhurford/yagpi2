@@ -25,11 +25,13 @@ class TestTest < Minitest::Test
 
   def complete_params
     {
-      "body" => "test",
-      "head" => { "ref" => "test" },
       "action" => "test",
-      "html_url" => "test",
-      "user" => { "login" => "test" }
+      "pull_request" => {
+        "body" => "test",
+        "head" => { "ref" => "test" },
+        "html_url" => "test",
+        "user" => { "login" => "test" }
+      }
     }
   end
 
@@ -41,7 +43,7 @@ class TestTest < Minitest::Test
   end
 
   def test_hook_returns_ping
-    post "/github_hook", { zen: "Responsive is better than fast." }
+    post "/github_hook", '{ "zen": "Responsive is better than fast." }'
     assert(last_response.ok?)
     assert_equal(Api.receive_ping.to_json, last_response.body)
   end
@@ -68,7 +70,7 @@ class TestTest < Minitest::Test
   def test_params_with_no_branch_does_not_validate
     with_errors do
       no_branch_params = complete_params.tap do |params|
-        params["head"]["ref"] = nil
+        params["pull_request"]["head"]["ref"] = nil
       end
       assert_error(StandardError, "No branch") { Api.validate_payload(no_branch_params) }
     end
@@ -77,7 +79,7 @@ class TestTest < Minitest::Test
   def test_params_with_no_pr_url_does_not_validate
     with_errors do
       no_pr_url_params = complete_params.tap do |params|
-        params["html_url"] = nil
+        params["pull_request"]["html_url"] = nil
       end
       assert_error(StandardError, "No PR URL") { Api.validate_payload(no_pr_url_params) }
     end
@@ -86,7 +88,7 @@ class TestTest < Minitest::Test
   def test_params_with_no_author_does_not_validate
     with_errors do
       no_author_params = complete_params.tap do |params|
-        params["user"]["login"] = nil
+        params["pull_request"]["user"]["login"] = nil
       end
       assert_error(StandardError, "No author") { Api.validate_payload(no_author_params) }
     end
@@ -115,12 +117,12 @@ class TestTest < Minitest::Test
   def test_that_it_finishes_an_open_pr
     opening_params = complete_params.tap do |params|
       params["action"] = "opened"
-      params["body"] = "1234567"  # Add a Pivotal ID
+      params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-          assert_equal("finish", Api.receive_hook_and_return_data!({"pull_request" => opening_params})["pivotal_action"])
+          assert_equal("finish", Api.receive_hook_and_return_data!(opening_params)["pivotal_action"])
         end
       end
     end
@@ -129,12 +131,12 @@ class TestTest < Minitest::Test
   def test_that_it_delivers_a_closed_pr
     closing_params = complete_params.tap do |params|
       params["action"] = "closed"
-      params["body"] = "1234567"  # Add a Pivotal ID
+      params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-          assert_equal("deliver", Api.receive_hook_and_return_data!({"pull_request" => closing_params})["pivotal_action"])
+          assert_equal("deliver", Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
         end
       end
     end
@@ -143,12 +145,12 @@ class TestTest < Minitest::Test
   def test_that_it_ignores_otherwise
     ignorable_params = complete_params.tap do |params|
       params["action"] = "resynch"
-      params["body"] = "1234567"  # Add a Pivotal ID
+      params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-          assert_equal("ignore", Api.receive_hook_and_return_data!({"pull_request" => ignorable_params})["pivotal_action"])
+          assert_equal("ignore", Api.receive_hook_and_return_data!(ignorable_params)["pivotal_action"])
         end
       end
     end

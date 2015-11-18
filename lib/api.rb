@@ -33,13 +33,12 @@ class Api
 
 
   def self.validate_payload(payload)
-    error!('No payload', 500) unless payload.present?
     validated_payload = {
-      "github_body" => payload["body"],
-      "github_branch" => payload["head"]["ref"],
+      "github_body" => payload["pull_request"]["body"],
+      "github_branch" => payload["pull_request"]["head"]["ref"],
       "github_action" => payload["action"],
-      "github_pr_url" => payload["html_url"],
-      "github_author" => payload["user"]["login"]
+      "github_pr_url" => payload["pull_request"]["html_url"],
+      "github_author" => payload["pull_request"]["user"]["login"]
     }
     error!("No action", 500) unless validated_payload["github_action"].present?
     error!("No branch", 500) unless validated_payload["github_branch"].present?
@@ -83,10 +82,8 @@ class Api
   end
 
   #TODO: Mirror issues
-  def self.receive_hook_and_return_data!(params)
-    return(receive_ping.to_json) if Github.is_github_ping?(params)
-    
-    payload = params["pull_request"]
+  def self.receive_hook_and_return_data!(payload)
+    return(receive_ping.to_json) if Github.is_github_ping?(payload)
     payload = validate_payload(payload)
 
     pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
