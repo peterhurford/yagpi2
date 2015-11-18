@@ -15,15 +15,10 @@ get "/ping" do
 end
 
 post '/github_hook' do
-  begin
-    request.body.rewind
-    payload = JSON.parse(request.body.read)
-    verify_signature(payload) unless ENV["RACK_ENV"] == "test"
-    Api.error!('No payload', 500) unless payload.present?
-    Api.receive_hook_and_return_data!(payload)
-  rescue exception => e
-    Api.error!(e, 500)
-  end
+  payload = JSON.parse(request.body.read)
+  verify_signature(payload) unless ENV["RACK_ENV"] == "test"
+  Api.error!('No payload', 500) unless payload.present?
+  Api.receive_hook_and_return_data!(payload)
 end
 
 def verify_signature(payload)
@@ -34,4 +29,8 @@ def verify_signature(payload)
   unless Rack::Utils.secure_compare(signature, request.env['HTTP_X_HUB_SIGNATURE'])
     return halt 500, "Signatures didn't match!" 
   end
+end
+
+error do
+  env['sinatra.error'].message
 end
