@@ -17,10 +17,10 @@ end
 post '/github_hook' do
   begin
     request.body.rewind
-    payload = request.body.read
+    payload = JSON.parse(request.body.read)
     verify_signature(payload) unless ENV["RACK_ENV"] == "test"
     Api.error!('No payload', 500) unless payload.present?
-    Api.receive_hook_and_return_data!(JSON.parse(payload))
+    Api.receive_hook_and_return_data!(payload)
   rescue exception => e
     e.to_json
   end
