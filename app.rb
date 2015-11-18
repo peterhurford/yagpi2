@@ -15,5 +15,6 @@ get "/ping" do
 end
 
 post '/github_hook' do
-  Api.receive_hook_and_return_data!(params)
+  request
+  #Api.receive_hook_and_return_data!(params)
 end

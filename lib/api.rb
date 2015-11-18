@@ -84,7 +84,6 @@ class Api
 
   #TODO: Mirror issues
   def self.receive_hook_and_return_data!(params)
-    return(params)
     return(receive_ping.to_json) if Github.is_github_ping?(params)
     
     payload = params["pull_request"]
