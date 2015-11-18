@@ -35,8 +35,9 @@ class Api
   end
 
 
-  def self.validate_payload(payload)
+  def self.validate_pull_request_payload(payload)
     validated_payload = {
+      "type" => "pull_request",
       "github_body" => payload["pull_request"]["body"],
       "github_branch" => payload["pull_request"]["head"]["ref"],
       "github_action" => payload["action"],
@@ -76,6 +77,7 @@ class Api
 
   def self.api_results(payload, pivotal_id, yagpi_action_taken)
     {
+      "processing_type" => payload["type"],
       "detected_github_action" => payload["github_action"],
       "detected_pivotal_id" => pivotal_id,
       "detected_github_pr_url" => payload["github_pr_url"],
@@ -99,7 +101,7 @@ class Api
 
 
   def self.handle_pull_request_action(payload)
-    payload = validate_payload(payload)
+    payload = validate_pull_request_payload(payload)
 
     pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
     handle_missing_pivotal_id(payload) unless pivotal_id.present?

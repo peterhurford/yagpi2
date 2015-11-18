@@ -71,8 +71,8 @@ class TestTest < Minitest::Test
     assert_equal(500, JSON.parse(last_response.body)["error"])
   end
 
-  def test_that_params_validate
-    assert(Api.validate_payload(complete_params).is_a?(Hash))
+  def test_that_pull_request_params_validate
+    assert(Api.validate_pull_request_payload(complete_params).is_a?(Hash))
   end
 
   def test_params_with_no_action_does_not_validate
@@ -80,7 +80,8 @@ class TestTest < Minitest::Test
       no_action_params = complete_params.tap do |params|
         params["action"] = nil
       end
-      assert_error(StandardError, "No action") { Api.validate_payload(no_action_params) }
+      assert_error(StandardError, "No action") {
+        Api.validate_pull_request_payload(no_action_params) }
     end
   end
 
@@ -89,7 +90,8 @@ class TestTest < Minitest::Test
       no_branch_params = complete_params.tap do |params|
         params["pull_request"]["head"]["ref"] = nil
       end
-      assert_error(StandardError, "No branch") { Api.validate_payload(no_branch_params) }
+      assert_error(StandardError, "No branch") {
+        Api.validate_pull_request_payload(no_branch_params) }
     end
   end
 
@@ -98,7 +100,8 @@ class TestTest < Minitest::Test
       no_pr_url_params = complete_params.tap do |params|
         params["pull_request"]["html_url"] = nil
       end
-      assert_error(StandardError, "No PR URL") { Api.validate_payload(no_pr_url_params) }
+      assert_error(StandardError, "No PR URL") {
+        Api.validate_pull_request_payload(no_pr_url_params) }
     end
   end
 
@@ -107,7 +110,8 @@ class TestTest < Minitest::Test
       no_author_params = complete_params.tap do |params|
         params["pull_request"]["user"]["login"] = nil
       end
-      assert_error(StandardError, "No author") { Api.validate_payload(no_author_params) }
+      assert_error(StandardError, "No author") {
+        Api.validate_pull_request_payload(no_author_params) }
     end
   end
 
