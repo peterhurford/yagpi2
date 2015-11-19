@@ -62,7 +62,7 @@ class Github
     pivotal_id_message = "PIVOTAL: #{pivotal_url}"
     new_issue_body = payload["github_body"] + "\n\n" + pivotal_id_message
     Octokit.update_issue(repo, issue_number, payload["github_title"], new_issue_body)
-    post_to_github!(github_url, pivotal_id_message)
+    post_to_github!(payload["github_url"], pivotal_id_message)
   end
 
   # Github sends a strange param set to ping your app.
