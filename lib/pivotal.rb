@@ -18,12 +18,17 @@ class Pivotal
   end
 
 
+  def self.bug_template(github_title, github_url)
+    { story_type: "bug", labels: ["bugs", "triage"], name: github_title,
+      description: github_url }.to_json
+  end
+
   def self.create_a_bug!(github_title, github_url)
     Api.error!('PIVOTAL_PROJECT_ID not set', 500) unless ENV['PIVOTAL_PROJECT_ID'].present?
     connect_to_pivotal!
     story = @pivotal_conn["projects/#{ENV['PIVOTAL_PROJECT_ID']}/stories"].post(
-      { story_type: "bug", name: github_title, description: github_url }.to_json)
-    JSON.parse(story)["url"]
+      bug_template(github_title, github_url))
+    JSON.parse(story)["url"]     # Return the Pivotal URL for cross-posting on the issue.
   end
 
 
