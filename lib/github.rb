@@ -1,5 +1,8 @@
 require "octokit"
 
+CARRIAGE_RETURN = "
+"
+
 class Github
   def self.connect_to_github!
     Api.error!('GITHUB_USERNAME not set', 500) unless ENV['GITHUB_USERNAME'].present?
@@ -26,20 +29,43 @@ class Github
     "#{random_nag} Please update the description of the PR with the Pivotal ID, then close and reopen this PR."
   end
 
-  def self.parse_github_url(github_pr_url)
-    urlparts = github_pr_url.split('/')
+  # Converts an absolute GitHub URL into the relative comments url for the PR
+  def self.get_relative_comments_url(github_url)
+    urlparts = github_url.split('/')
     "/repos/#{urlparts[3]}/#{urlparts[4]}/issues/#{urlparts[6]}/comments"
   end
 
-  def self.nag_for_a_pivotal_id!(github_pr_url)
+  def self.get_issue_number_from_url(github_url)
+    github_url.split("/")[-1]
+  end
+
+  def self.get_repo_from_url(github_url)
+    github_url.split("/")[3, 2].join("/")
+  end
+
+  def self.post_to_github!(github_url, message)
     if ENV['DONT_POST_TO_GITHUB'] != 1
       connect_to_github!
-      Octokit.post(parse_github_url(github_pr_url),
-        options = { body: nag_message })
+      Octokit.post(get_relative_comments_url(github_url),
+        options = { body: message })
       true
     else
       false
     end
+  end
+
+  def self.nag_for_a_pivotal_id!(github_url)
+    post_to_github!(github_url, nag_message)
+  end
+
+  def self.post_pivotal_link_on_issue!(payload, pivotal_url)
+    repo = get_repo_from_url(payload["github_url"])
+    issue_number = get_issue_number_from_url(payload["github_url"])
+    pivotal_id_message = "PIVOTAL: #{pivotal_url}"
+    new_issue_body = payload["github_body"] + CARRIAGE_RETURN + CARRIAGE_RETURN +
+      pivotal_id_message
+    Octokit.update_issue(repo, issue_number, payload["github_title"], new_issue_body)
+    post_to_github!(github_url, pivotal_id_message)
   end
 
   # Github sends a strange param set to ping your app.

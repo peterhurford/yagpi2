@@ -38,6 +38,7 @@ class Api
   def self.validate_payload(payload, type)
     validated_payload = {
       "type" => type,
+      "github_title" => payload[type]["title"],
       "github_body" => payload[type]["body"],
       "github_action" => payload["action"],
       "github_url" => payload[type]["html_url"],
@@ -66,7 +67,7 @@ class Api
   end
 
   def self.nag(payload)
-    nag_result = Github.nag_for_a_pivotal_id!(payload["github_pr_url"])
+    nag_result = Github.nag_for_a_pivotal_id!(payload["github_url"])
     yagpi_action_taken = nag_result ? "nag" : "nag disabled"
     api_results(payload, nil, yagpi_action_taken)
   end
@@ -76,11 +77,11 @@ class Api
     nag(payload)
   end
 
-  def self.is_pr_opening?(action)
+  def self.is_opening?(action)
     %w(opened reopened).include?(action)
   end
 
-  def self.is_pr_closing?(action)
+  def self.is_closing?(action)
     action == "closed"
   end
 
@@ -89,7 +90,7 @@ class Api
       "processing_type" => payload["type"],
       "detected_github_action" => payload["github_action"],
       "detected_pivotal_id" => pivotal_id,
-      "detected_github_pr_url" => payload["github_pr_url"],
+      "detected_github_url" => payload["github_url"],
       "detected_github_author" => payload["github_author"],
       "pivotal_action" => yagpi_action_taken
     }
@@ -115,13 +116,11 @@ class Api
     pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
     handle_missing_pivotal_id(payload) unless pivotal_id.present?
 
-    if is_pr_opening?(payload["github_action"])
-      Pivotal.change_story_state!(pivotal_id,
-        payload["github_pr_url"], payload["github_author"], 'finished')
+    if is_opening?(payload["github_action"])
+      Pivotal.finish!(pivotal_id, payload["github_url"], payload["github_author"])
       yagpi_action_taken = "finish"
-    elsif is_pr_closing?(payload["github_action"])
-      Pivotal.change_story_state!(pivotal_id,
-        payload["github_pr_url"], payload["github_author"], 'delivered')
+    elsif is_closing?(payload["github_action"])
+      Pivotal.deliver!(pivotal_id, payload["github_url"], payload["github_author"])
       yagpi_action_taken = "deliver"
     else
       return(ignore(payload, pivotal_id))
@@ -132,6 +131,19 @@ class Api
 
   def self.handle_issue_action(payload)
     payload = validate_issue_payload(payload)
-    # Not finished yet.
+
+    if is_opening?(payload["github_action"])
+      piv_url = Pivotal.create_a_bug!(payload["github_title"], payload["github_url"])
+      Github.post_pivotal_link_on_issue!(payload, piv_url)
+      yagpi_action_taken = "create"
+    elsif is_closing?(payload["github_action"])
+      pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], nil)
+      return(ignore(payload, pivotal_id)) unless pivotal_id.present?
+      Pivotal.deliver!(pivotal_id, payload["github_url"], payload["github_author"])
+      yagpi_action_taken = "deliver"
+    else
+      return(ignore(payload, pivotal_id))
+    end
+    api_results(payload, pivotal_id, yagpi_action_taken)
   end
 end
