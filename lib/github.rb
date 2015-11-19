@@ -1,8 +1,5 @@
 require "octokit"
 
-CARRIAGE_RETURN = "
-"
-
 class Github
   def self.connect_to_github!
     Api.error!('GITHUB_USERNAME not set', 500) unless ENV['GITHUB_USERNAME'].present?
@@ -59,11 +56,11 @@ class Github
   end
 
   def self.post_pivotal_link_on_issue!(payload, pivotal_url)
+    connect_to_github!
     repo = get_repo_from_url(payload["github_url"])
     issue_number = get_issue_number_from_url(payload["github_url"])
     pivotal_id_message = "PIVOTAL: #{pivotal_url}"
-    new_issue_body = payload["github_body"] + CARRIAGE_RETURN + CARRIAGE_RETURN +
-      pivotal_id_message
+    new_issue_body = payload["github_body"] + "\n\n" + pivotal_id_message
     Octokit.update_issue(repo, issue_number, payload["github_title"], new_issue_body)
     post_to_github!(github_url, pivotal_id_message)
   end
