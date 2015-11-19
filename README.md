@@ -34,7 +34,7 @@ Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 
 ![](http://puu.sh/lpqwM/472669578f.png)
 
-The webhook should receive "Pull Request".
+The webhook should receive the individual events "Pull Request" and "Issues".
 
 
 ## Customization
