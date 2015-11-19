@@ -23,7 +23,7 @@ class Pivotal
     connect_to_pivotal!
     story = @pivotal_conn["projects/#{ENV['PIVOTAL_PROJECT_ID']}/stories"].post(
       { story_type: "bug", name: github_title, description: github_url }.to_json)
-    story["url"]
+    JSON.parse(story)["url"]
   end
 
 
