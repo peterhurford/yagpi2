@@ -35,20 +35,29 @@ class Api
   end
 
 
-  def self.validate_pull_request_payload(payload)
+  def self.validate_payload(payload, type)
     validated_payload = {
-      "type" => "pull_request",
-      "github_body" => payload["pull_request"]["body"],
-      "github_branch" => payload["pull_request"]["head"]["ref"],
+      "type" => type,
+      "github_body" => payload[type]["body"],
       "github_action" => payload["action"],
-      "github_pr_url" => payload["pull_request"]["html_url"],
-      "github_author" => payload["pull_request"]["user"]["login"]
+      "github_url" => payload[type]["html_url"],
+      "github_author" => payload[type]["user"]["login"]
     }
     error!("No action", 500) unless validated_payload["github_action"].present?
-    error!("No branch", 500) unless validated_payload["github_branch"].present?
-    error!("No PR URL", 500) unless validated_payload["github_pr_url"].present?
+    error!("No URL", 500) unless validated_payload["github_url"].present?
     error!("No author", 500) unless validated_payload["github_author"].present?
     validated_payload
+  end
+
+  def self.validate_pull_request_payload(payload)
+    validated_payload = validate_payload(payload, "pull_request")
+    validated_payload["github_branch"] = payload["pull_request"]["head"]["ref"]
+    error!("No branch", 500) unless validated_payload["github_branch"].present?
+    validated_payload
+  end
+
+  def self.validate_issue_payload(payload)
+    validate_payload(payload, "issue")
   end
 
 
@@ -118,5 +127,11 @@ class Api
       return(ignore(payload, pivotal_id))
     end
     api_results(payload, pivotal_id, yagpi_action_taken)
+  end
+
+
+  def self.handle_issue_action(payload)
+    payload = validate_issue_payload(payload)
+    # Not finished yet.
   end
 end

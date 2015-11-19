@@ -25,7 +25,7 @@ class TestTest < Minitest::Test
     Api.unset_raises_flag!
   end
 
-  def complete_params
+  def complete_pr_params
     {
       "action" => "test",
       "pull_request" => {
@@ -35,6 +35,13 @@ class TestTest < Minitest::Test
         "user" => { "login" => "test" }
       }
     }
+  end
+
+  def complete_issue_params
+    complete_pr_params.tap do |params|
+      params["issue"] = params["pull_request"]
+      params["pull_request"] = nil
+    end
   end
 
 
@@ -72,22 +79,31 @@ class TestTest < Minitest::Test
   end
 
   def test_that_pull_request_params_validate
-    assert(Api.validate_pull_request_payload(complete_params).is_a?(Hash))
+    assert(Api.validate_pull_request_payload(complete_pr_params).is_a?(Hash))
+  end
+
+  def test_that_issue_params_validate
+    assert(Api.validate_issue_payload(complete_issue_params).is_a?(Hash))
   end
 
   def test_params_with_no_action_does_not_validate
     with_errors do
-      no_action_params = complete_params.tap do |params|
+      pr_no_action_params = complete_pr_params.tap do |params|
+        params["action"] = nil
+      end
+      issue_no_action_params = complete_issue_params.tap do |params|
         params["action"] = nil
       end
       assert_error(StandardError, "No action") {
-        Api.validate_pull_request_payload(no_action_params) }
+        Api.validate_pull_request_payload(pr_no_action_params) }
+      assert_error(StandardError, "No action") {
+        Api.validate_issue_payload(issue_no_action_params) }
     end
   end
 
   def test_params_with_no_branch_does_not_validate
     with_errors do
-      no_branch_params = complete_params.tap do |params|
+      no_branch_params = complete_pr_params.tap do |params|
         params["pull_request"]["head"]["ref"] = nil
       end
       assert_error(StandardError, "No branch") {
@@ -95,23 +111,33 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_params_with_no_pr_url_does_not_validate
+  def test_params_with_no_url_does_not_validate
     with_errors do
-      no_pr_url_params = complete_params.tap do |params|
+      pr_no_url_params = complete_pr_params.tap do |params|
         params["pull_request"]["html_url"] = nil
       end
-      assert_error(StandardError, "No PR URL") {
-        Api.validate_pull_request_payload(no_pr_url_params) }
+      issue_no_url_params = complete_issue_params.tap do |params|
+        params["issue"]["html_url"] = nil
+      end
+      assert_error(StandardError, "No URL") {
+        Api.validate_pull_request_payload(pr_no_url_params) }
+      assert_error(StandardError, "No URL") {
+        Api.validate_issue_payload(issue_no_url_params) }
     end
   end
 
   def test_params_with_no_author_does_not_validate
     with_errors do
-      no_author_params = complete_params.tap do |params|
+      pr_no_author_params = complete_pr_params.tap do |params|
+        params["pull_request"]["user"]["login"] = nil
+      end
+      issue_no_author_params = complete_pr_params.tap do |params|
         params["pull_request"]["user"]["login"] = nil
       end
       assert_error(StandardError, "No author") {
-        Api.validate_pull_request_payload(no_author_params) }
+        Api.validate_pull_request_payload(pr_no_author_params) }
+      assert_error(StandardError, "No author") {
+        Api.validate_pull_request_payload(issue_no_author_params) }
     end
   end
 
@@ -130,7 +156,7 @@ class TestTest < Minitest::Test
   def test_that_it_handles_a_missing_pivotal_id
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
-        assert_equal("nag", Api.handle_missing_pivotal_id(complete_params)["pivotal_action"])
+        assert_equal("nag", Api.handle_missing_pivotal_id(complete_pr_params)["pivotal_action"])
       end
     end
   end
@@ -143,18 +169,18 @@ class TestTest < Minitest::Test
 
   def test_ignore
     with_errors do
-      assert_equal("ignore", Api.ignore(complete_params, "1234567")["pivotal_action"])
+      assert_equal("ignore", Api.ignore(complete_pr_params, "1234567")["pivotal_action"])
     end
   end
 
   def test_api_results
     with_errors do
-      assert_equal("finished", Api.api_results(complete_params, "1234567", "finished")["pivotal_action"])
+      assert_equal("finished", Api.api_results(complete_pr_params, "1234567", "finished")["pivotal_action"])
     end
   end
 
   def test_that_it_finishes_an_open_pr
-    opening_params = complete_params.tap do |params|
+    opening_params = complete_pr_params.tap do |params|
       params["action"] = "opened"
       params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
     end
@@ -170,7 +196,7 @@ class TestTest < Minitest::Test
   end
 
   def test_that_it_delivers_a_closed_pr
-    closing_params = complete_params.tap do |params|
+    closing_params = complete_pr_params.tap do |params|
       params["action"] = "closed"
       params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
     end
@@ -184,7 +210,7 @@ class TestTest < Minitest::Test
   end
 
   def test_that_it_ignores_otherwise
-    ignorable_params = complete_params.tap do |params|
+    ignorable_params = complete_pr_params.tap do |params|
       params["action"] = "resynch"
       params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
     end
