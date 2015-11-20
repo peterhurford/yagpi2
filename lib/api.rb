@@ -36,6 +36,7 @@ class Api
 
 
   def self.validate_payload(payload, type)
+    error!("Malformed payload", 500) unless payload[type].is_a?(Hash)
     validated_payload = {
       "type" => type,
       "github_title" => payload[type]["title"],

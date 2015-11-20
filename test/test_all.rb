@@ -82,6 +82,15 @@ class TestTest < Minitest::Test
     assert(Api.validate_pull_request_payload(complete_pr_params).is_a?(Hash))
   end
 
+  def test_that_malformed_payload_does_not_validate
+    with_errors do
+      assert_error(StandardError, "Malformed payload") {
+        Api.validate_pull_request_payload({}) }
+      assert_error(StandardError, "Malformed payload") {
+        Api.validate_issue_payload({}) }
+    end
+  end
+
   def test_that_issue_params_validate
     assert(Api.validate_issue_payload(complete_issue_params).is_a?(Hash))
   end
