@@ -2,12 +2,8 @@ require "octokit"
 
 class Github
   def self.connect_to_github!
-    Api.error!('GITHUB_USERNAME not set', 500) unless ENV['GITHUB_USERNAME'].present?
-    Api.error!('GITHUB_PASSWORD not set', 500) unless ENV['GITHUB_PASSWORD'].present?
-    Octokit.configure do |c|
-      c.login = ENV['GITHUB_USERNAME']
-      c.password = ENV['GITHUB_PASSWORD']
-    end
+    Api.error!('GITHUB_OAUTH_TOKEN not set', 500) unless ENV['GITHUB_OAUTH_TOKEN'].present?
+    @client = Octokit::Client.new(:access_token => ENV["GITHUB_OAUTH_TOKEN"])
   end
 
   def self.random_nag
@@ -43,7 +39,7 @@ class Github
   def self.post_to_github!(github_url, message)
     if ENV['DONT_POST_TO_GITHUB'] != 1
       connect_to_github!
-      Octokit.post(get_relative_comments_url(github_url),
+      @client.post(get_relative_comments_url(github_url),
         options = { body: message })
       true
     else
@@ -61,7 +57,7 @@ class Github
     issue_number = get_issue_number_from_url(payload["github_url"])
     pivotal_id_message = "PIVOTAL: #{pivotal_url}"
     new_issue_body = payload["github_body"] + "\n\n" + pivotal_id_message
-    Octokit.update_issue(repo, issue_number, payload["github_title"], new_issue_body)
+    @client.update_issue(repo, issue_number, payload["github_title"], new_issue_body)
     post_to_github!(payload["github_url"], pivotal_id_message)
   end
 
