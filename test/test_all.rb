@@ -249,20 +249,15 @@ class TestTest < Minitest::Test
   end
 
 
-  def test_that_it_delivers_the_bug_on_issue_close
+  def test_that_it_ignores_on_issue_close
     closing_params = complete_issue_params.tap do |params|
       params["action"] = "closed"
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      Github.stub(:post_pivotal_link_on_issue!, MiniTest::Mock.new) do
-        Pivotal.stub(:deliver!, MiniTest::Mock.new) do
-          assert_equal("deliver",
-            Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
-        end
-      end
+      assert_equal("ignore",
+        Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
     end
-
   end
 end
 

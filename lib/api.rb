@@ -137,12 +137,8 @@ class Api
       piv_url = Pivotal.create_a_bug!(payload["github_title"], payload["github_url"])
       Github.post_pivotal_link_on_issue!(payload, piv_url)
       yagpi_action_taken = "create"
-    elsif is_closing?(payload["github_action"])
-      pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], nil)
-      return(ignore(payload, pivotal_id)) unless pivotal_id.present?
-      Pivotal.deliver!(pivotal_id, payload["github_url"], payload["github_author"])
-      yagpi_action_taken = "deliver"
     else
+      pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], nil)
       return(ignore(payload, pivotal_id))
     end
     api_results(payload, pivotal_id, yagpi_action_taken)
