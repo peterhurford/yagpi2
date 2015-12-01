@@ -73,11 +73,6 @@ class Api
     api_results(payload, nil, yagpi_action_taken)
   end
 
-  def self.handle_missing_pivotal_id(payload)
-    return(ignore(payload, nil)) if payload["github_action"] == "closed" 
-    nag(payload)
-  end
-
   def self.is_opening?(action)
     %w(opened reopened).include?(action)
   end
@@ -113,13 +108,16 @@ class Api
 
   def self.handle_pull_request_action(payload)
     payload = validate_pull_request_payload(payload)
-
     pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
-    handle_missing_pivotal_id(payload) unless pivotal_id.present?
 
     if is_opening?(payload["github_action"])
+      yagpi_action_taken = ""
+      unless pivotal_id.present?
+        nag(payload) 
+        yagpi_action_taken += "nag"
+      end
       Pivotal.finish!(pivotal_id, payload["github_url"], payload["github_author"])
-      yagpi_action_taken = "finish"
+      yagpi_action_taken += "finish"
     elsif is_closing?(payload["github_action"])
       Pivotal.deliver!(pivotal_id, payload["github_url"], payload["github_author"])
       yagpi_action_taken = "deliver"

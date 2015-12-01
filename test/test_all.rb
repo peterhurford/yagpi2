@@ -162,14 +162,6 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_that_it_handles_a_missing_pivotal_id
-    with_errors do
-      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
-        assert_equal("nag", Api.handle_missing_pivotal_id(complete_pr_params)["pivotal_action"])
-      end
-    end
-  end
-
   def test_pivotal_post_is_parsable
     with_errors do
       assert(JSON.parse(Pivotal.pivotal_post_message("108405812", "test.com", "peterhurford", "finishes")).is_a?(Hash))
@@ -199,6 +191,21 @@ class TestTest < Minitest::Test
           output = Api.receive_hook_and_return_data!(opening_params)
           assert_equal("pull_request", output["processing_type"])
           assert_equal("finish", output["pivotal_action"])
+        end
+      end
+    end
+  end
+
+  def test_that_it_handles_a_missing_pivotal_id
+    opening_params = complete_pr_params.tap do |params|
+      params["action"] = "opened"
+    end
+    with_errors do
+      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
+        Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
+          output = Api.receive_hook_and_return_data!(opening_params)
+          assert_equal("pull_request", output["processing_type"])
+          assert_equal("nagfinish", output["pivotal_action"])
         end
       end
     end
