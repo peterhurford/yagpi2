@@ -32,7 +32,8 @@ class TestTest < Minitest::Test
         "body" => "test",
         "head" => { "ref" => "test" },
         "html_url" => "test",
-        "user" => { "login" => "test" }
+        "user" => { "login" => "test" },
+        "merged" => true
       }
     }
   end
@@ -196,6 +197,22 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_that_it_finishes_an_reopened_pr
+    opening_params = complete_pr_params.tap do |params|
+      params["action"] = "reopened"
+      params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
+        Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
+          output = Api.receive_hook_and_return_data!(opening_params)
+          assert_equal("pull_request", output["processing_type"])
+          assert_equal("finish", output["pivotal_action"])
+        end
+      end
+    end
+  end
+
   def test_that_it_handles_a_missing_pivotal_id
     opening_params = complete_pr_params.tap do |params|
       params["action"] = "opened"
@@ -211,7 +228,7 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_that_it_delivers_a_closed_pr
+  def test_that_it_delivers_a_closed_and_merged_pr
     closing_params = complete_pr_params.tap do |params|
       params["action"] = "closed"
       params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
@@ -220,6 +237,22 @@ class TestTest < Minitest::Test
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
           assert_equal("deliver", Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
+        end
+      end
+    end
+  end
+
+  def test_that_it_ignores_a_closed_and_unmerged_pr
+    closing_params = complete_pr_params.tap do |params|
+      params["action"] = "closed"
+      params["pull_request"]["merged"] = false
+      params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
+        Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
+          assert_equal("ignore",
+                       Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
         end
       end
     end

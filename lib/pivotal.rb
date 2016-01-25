@@ -37,6 +37,7 @@ class Pivotal
   end
 
   def self.pivotal_yagpi_comment(pivotal_id, pivotal_action)
+    return nil if pivotal_id.nil? || pivotal_action.nil?
     "[" + pivotal_verb(pivotal_action) + " #" + pivotal_id + "] " +
       pivotal_action.capitalize + " via YAGPI GitHub Webhook."
   end
