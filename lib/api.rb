@@ -54,6 +54,7 @@ class Api
   def self.validate_pull_request_payload(payload)
     validated_payload = validate_payload(payload, "pull_request")
     validated_payload["github_branch"] = payload["pull_request"]["head"]["ref"]
+    validated_payload["merged"] = payload["pull_request"]["merged"]
     error!("No branch", 500) unless validated_payload["github_branch"].present?
     validated_payload
   end
@@ -79,6 +80,10 @@ class Api
 
   def self.is_closing?(action)
     action == "closed"
+  end
+
+  def self.is_merging?(merge_action)
+    merge_action == true
   end
 
   def self.api_results(payload, pivotal_id, yagpi_action_taken)
@@ -119,8 +124,12 @@ class Api
       Pivotal.finish!(pivotal_id, payload["github_url"], payload["github_author"])
       yagpi_action_taken += "finish"
     elsif is_closing?(payload["github_action"])
-      Pivotal.deliver!(pivotal_id, payload["github_url"], payload["github_author"])
-      yagpi_action_taken = "deliver"
+      if is_merging?(payload["merged"])
+        Pivotal.deliver!(pivotal_id, payload["github_url"], payload["github_author"])
+        yagpi_action_taken = "deliver"
+      else
+        yagpi_action_taken = "ignore"
+      end
     else
       return(ignore(payload, pivotal_id))
     end

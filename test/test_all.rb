@@ -33,7 +33,7 @@ class TestTest < Minitest::Test
         "head" => { "ref" => "test" },
         "html_url" => "test",
         "user" => { "login" => "test" },
-        "merged" => "true"
+        "merged" => true
       }
     }
   end
@@ -245,13 +245,14 @@ class TestTest < Minitest::Test
   def test_that_it_ignores_a_closed_and_unmerged_pr
     closing_params = complete_pr_params.tap do |params|
       params["action"] = "closed"
-      params["merged"] = "false"
+      params["pull_request"]["merged"] = false
       params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-          assert_equal("ignore", Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
+          assert_equal("ignore",
+                       Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
         end
       end
     end
