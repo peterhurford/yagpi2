@@ -40,3 +40,5 @@ The webhook should receive the individual events "Pull Request" and "Issues".
 ## Customization
 
 Currently YAGPI2 will only implement our rigid workflow, but customization can be added upon request.  You could also fork the repo to change it to implement your own workflow.
+
+:)
