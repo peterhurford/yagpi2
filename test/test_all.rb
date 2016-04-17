@@ -165,14 +165,6 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_pivotal_post_is_parsable
-    with_errors do
-      assert(JSON.parse(
-        Pivotal.pivotal_post_message("108405812", "test.com", "peterhurford", "finishes")
-      ).is_a?(Hash))
-    end
-  end
-
   def test_ignore
     with_errors do
       assert_equal("ignore", Api.ignore(complete_pr_params, "1234567")["pivotal_action"])
@@ -315,9 +307,11 @@ class TestTest < Minitest::Test
       params["issue"]["assignee"] = "RolandFreedom"
     end
     with_errors do
-      output = Api.receive_hook_and_return_data!(assigning_params)
-      assert_equal("assign", output["pivotal_action"])
-      assert_equal("RolandFreedom", output["assignee"])
+      Pivotal.stub(:assign!, MiniTest::Mock.new) do
+        output = Api.receive_hook_and_return_data!(assigning_params)
+        assert_equal("assign", output["pivotal_action"])
+        assert_equal("RolandFreedom", output["assignee"])
+      end
     end
   end
 
@@ -333,12 +327,14 @@ class TestTest < Minitest::Test
       params["issue"]["assignee"] = "CarlCarlton"
     end
     with_errors do
-      output = Api.receive_hook_and_return_data!(assigning_params)
-      assert_equal("assign", output["pivotal_action"])
-      assert_equal("RolandFreedom", output["assignee"])
-      output = Api.receive_hook_and_return_data!(reassigning_params)
-      assert_equal("assign", output["pivotal_action"])
-      assert_equal("CarlCarlton", output["assignee"])
+      Pivotal.stub(:assign!, MiniTest::Mock.new) do
+        output = Api.receive_hook_and_return_data!(assigning_params)
+        assert_equal("assign", output["pivotal_action"])
+        assert_equal("RolandFreedom", output["assignee"])
+        output = Api.receive_hook_and_return_data!(reassigning_params)
+        assert_equal("assign", output["pivotal_action"])
+        assert_equal("CarlCarlton", output["assignee"])
+      end
     end
   end
 
@@ -348,9 +344,11 @@ class TestTest < Minitest::Test
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      output = Api.receive_hook_and_return_data!(unassigning_params)
-      assert_equal("assign", output["pivotal_action"])
-      assert_equal(nil, output["assignee"])
+      Pivotal.stub(:assign!, MiniTest::Mock.new) do
+        output = Api.receive_hook_and_return_data!(unassigning_params)
+        assert_equal("assign", output["pivotal_action"])
+        assert_equal(nil, output["assignee"])
+      end
     end
   end
 
@@ -361,9 +359,11 @@ class TestTest < Minitest::Test
       params["issue"]["labels"] = [{name: "label"}]
     end
     with_errors do
-      output = Api.receive_hook_and_return_data!(labeling_params)
-      assert_equal("label", output["pivotal_action"])
-      assert_equal("label", output["labels"])
+      Pivotal.stub(:label!, MiniTest::Mock.new) do
+        output = Api.receive_hook_and_return_data!(labeling_params)
+        assert_equal("label", output["pivotal_action"])
+        assert_equal("label", output["labels"])
+      end
     end
   end
 
@@ -379,12 +379,14 @@ class TestTest < Minitest::Test
       params["issue"]["labels"] = [{name: "new_label"}]
     end
     with_errors do
-      output = Api.receive_hook_and_return_data!(labeling_params)
-      assert_equal("label", output["pivotal_action"])
-      assert_equal("label", output["labels"])
-      output = Api.receive_hook_and_return_data!(relabeling_params)
-      assert_equal("label", output["pivotal_action"])
-      assert_equal("new_label", output["labels"])
+      Pivotal.stub(:label!, MiniTest::Mock.new) do
+        output = Api.receive_hook_and_return_data!(labeling_params)
+        assert_equal("label", output["pivotal_action"])
+        assert_equal("label", output["labels"])
+        output = Api.receive_hook_and_return_data!(relabeling_params)
+        assert_equal("label", output["pivotal_action"])
+        assert_equal("new_label", output["labels"])
+      end
     end
   end
 
@@ -394,9 +396,11 @@ class TestTest < Minitest::Test
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      output = Api.receive_hook_and_return_data!(unlabeling_params)
-      assert_equal("label", output["pivotal_action"])
-      assert_equal(nil, output["labels"])
+      Pivotal.stub(:label!, MiniTest::Mock.new) do
+        output = Api.receive_hook_and_return_data!(unlabeling_params)
+        assert_equal("label", output["pivotal_action"])
+        assert_equal(nil, output["labels"])
+      end
     end
   end
 
@@ -407,9 +411,11 @@ class TestTest < Minitest::Test
       params["issue"]["labels"] = [{name: "label"}, {name: "label2"}]
     end
     with_errors do
-      output = Api.receive_hook_and_return_data!(labeling_params)
-      assert_equal("label", output["pivotal_action"])
-      assert_equal("label, label2", output["labels"])
+      Pivotal.stub(:label!, MiniTest::Mock.new) do
+        output = Api.receive_hook_and_return_data!(labeling_params)
+        assert_equal("label", output["pivotal_action"])
+        assert_equal("label, label2", output["labels"])
+      end
     end
   end
 end

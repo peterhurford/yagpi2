@@ -11,10 +11,14 @@ class Pivotal
   end
 
 
-  def self.connect_to_pivotal!
-    Api.error!('PIVOTAL_API_KEY not set', 500) unless ENV['PIVOTAL_API_KEY'].present?
-    @pivotal_conn ||= RestClient::Resource.new("https://www.pivotaltracker.com/services/v5",
-       :headers => {'X-TrackerToken' => ENV['PIVOTAL_API_KEY'], 'Content-Type' => 'application/json'})
+  def self.pivotal_conn
+    pivotal_conn ||= begin
+      Api.error!("PIVOTAL_API_KEY not set", 500) unless ENV["PIVOTAL_API_KEY"].present?
+      Api.error!("PIVOTAL_PROJECT_ID not set", 500) unless ENV["PIVOTAL_PROJECT_ID"].present?
+      RestClient::Resource.new("https://www.pivotaltracker.com/services/v5",
+       :headers => {"X-TrackerToken" => ENV["PIVOTAL_API_KEY"],
+                    "Content-Type" => "application/json"})
+    end
   end
 
 
@@ -23,10 +27,13 @@ class Pivotal
       description: github_url }.to_json
   end
 
+  def self.projects_url
+    "projects/#{ENV['PIVOTAL_PROJECT_ID']}/stories"
+  end
+
   def self.create_a_bug!(github_title, github_url)
-    Api.error!('PIVOTAL_PROJECT_ID not set', 500) unless ENV['PIVOTAL_PROJECT_ID'].present?
     connect_to_pivotal!
-    story = @pivotal_conn["projects/#{ENV['PIVOTAL_PROJECT_ID']}/stories"].post(
+    story = pivotal_conn[projects_url].post(
       bug_template(github_title, github_url))
     JSON.parse(story)["url"]     # Return the Pivotal URL for cross-posting on the issue.
   end
@@ -42,21 +49,19 @@ class Pivotal
       pivotal_action.capitalize + " via YAGPI GitHub Webhook."
   end
 
-  def self.pivotal_post_message(pivotal_id, github_url, github_author, pivotal_action)
-    {
+  def self.comment!(comment, github_url, github_author)
+    pivotal_conn["source_commits"].post({
       source_commit: {
         commit_id: "",
-        message: pivotal_yagpi_comment(pivotal_id, pivotal_action),
+        message: comment,
         url: github_url,
         author: github_author
       }
-    }.to_json
+    }.to_json)
   end
 
   def self.change_story_state!(pivotal_id, github_url, github_author, pivotal_action)
-    connect_to_pivotal!
-    @pivotal_conn["source_commits"].post(
-      pivotal_post_message(pivotal_id, github_url, github_author, pivotal_action))
+    comment!(pivotal_yagpi_comment(pivotal_id, pivotal_action), github_url, github_author)
   end
 
 
@@ -66,5 +71,33 @@ class Pivotal
 
   def self.deliver!(pivotal_id, github_url, github_author)
     change_story_state!(pivotal_id, github_url, github_author, "delivered")
+  end
+
+  def self.get_story(pivotal_id)
+    JSON.parse(pivotal_conn["stories/#{pivotal_id}"].get())
+  end
+
+  def self.get_story_labels(pivotal_id)
+    get_story(pivotal_id)["labels"].map { |h| h["name"] }
+  end
+
+  def self.assign!(pivotal_id, assignee, github_url, github_author)
+    pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ labels: labels }.to_json)
+    # Pivotal doesn't let you assign stories by API :(
+    # And GitHub handles are different from Pivotal handles anyway,
+    # so we'll assign by label and clean it up in post.
+    label!(get_story_labels(pivotal_id).reject { |v| v =~ /assign/ } + "assignee:#{assignee}")
+    comment!("Assigned to #{assignee}.", github_url, github_author)
+  end
+
+  def self.label_!(pivotal_id, labels)
+    pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ labels: labels }.to_json)
+  end
+
+  def self.label!(pivotal_id, labels, github_url, github_author)
+    # Avoid overwritting assignee label
+    labels = get_story_labels(pivotal_id).select { |v| v =~ /assign/ } + labels
+    label_!(pivotal_id, labels)
+    comment!("Labels changed to #{(labels.join(', ') rescue nil)}.", github_url, github_author)
   end
 end
