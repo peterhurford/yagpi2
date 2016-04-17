@@ -153,6 +153,9 @@ class Api
       Github.post_pivotal_link_on_issue!(payload["url"], payload["title"],
                                          payload["body"], piv_url)
       yagpi_action_taken = "create"
+    elsif is_closing?(payload["action"])
+      Pivotal.deliver!(pivotal_id, payload["url"], payload["author"])
+      yagpi_action_taken = "deliver"
     elsif is_assigning?(payload["action"])
       Pivotal.assign!(pivotal_id, payload["assignee"])
       yagpi_action_taken = "assign"
