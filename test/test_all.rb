@@ -315,10 +315,9 @@ class TestTest < Minitest::Test
       params["issue"]["assignee"] = "RolandFreedom"
     end
     with_errors do
-      assert_equal("assign",
-        Api.receive_hook_and_return_data!(assigning_params)["pivotal_action"])
-      assert_equal("RolandFreedom",
-        Api.receive_hook_and_return_data!(assigning_params)["assignee"])
+      output = Api.receive_hook_and_return_data!(assigning_params)
+      assert_equal("assign", output["pivotal_action"])
+      assert_equal("RolandFreedom", output["assignee"])
     end
   end
 
@@ -334,14 +333,12 @@ class TestTest < Minitest::Test
       params["issue"]["assignee"] = "CarlCarlton"
     end
     with_errors do
-      assert_equal("assign",
-        Api.receive_hook_and_return_data!(assigning_params)["pivotal_action"])
-      assert_equal("RolandFreedom",
-        Api.receive_hook_and_return_data!(assigning_params)["assignee"])
-      assert_equal("assign",
-        Api.receive_hook_and_return_data!(reassigning_params)["pivotal_action"])
-      assert_equal("CarlCarlton",
-        Api.receive_hook_and_return_data!(reassigning_params)["assignee"])
+      output = Api.receive_hook_and_return_data!(assigning_params)
+      assert_equal("assign", output["pivotal_action"])
+      assert_equal("RolandFreedom", output["assignee"])
+      output = Api.receive_hook_and_return_data!(reassigning_params)
+      assert_equal("assign", output["pivotal_action"])
+      assert_equal("CarlCarlton", output["assignee"])
     end
   end
 
@@ -351,10 +348,9 @@ class TestTest < Minitest::Test
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      assert_equal("assign",
-        Api.receive_hook_and_return_data!(unassigning_params)["pivotal_action"])
-      assert_equal(nil,
-        Api.receive_hook_and_return_data!(unassigning_params)["assignee"])
+      output = Api.receive_hook_and_return_data!(unassigning_params)
+      assert_equal("assign", output["pivotal_action"])
+      assert_equal(nil, output["assignee"])
     end
   end
 
@@ -365,10 +361,9 @@ class TestTest < Minitest::Test
       params["issue"]["labels"] = [{name: "label"}]
     end
     with_errors do
-      assert_equal("label",
-        Api.receive_hook_and_return_data!(labeling_params)["pivotal_action"])
-      assert_equal("label",
-        Api.receive_hook_and_return_data!(labeling_params)["labels"])
+      output = Api.receive_hook_and_return_data!(labeling_params)
+      assert_equal("label", output["pivotal_action"])
+      assert_equal("label", output["labels"])
     end
   end
 
@@ -384,14 +379,12 @@ class TestTest < Minitest::Test
       params["issue"]["labels"] = [{name: "new_label"}]
     end
     with_errors do
-      assert_equal("label",
-        Api.receive_hook_and_return_data!(labeling_params)["pivotal_action"])
-      assert_equal("label",
-        Api.receive_hook_and_return_data!(labeling_params)["labels"])
-      assert_equal("label",
-        Api.receive_hook_and_return_data!(relabeling_params)["pivotal_action"])
-      assert_equal("new_label",
-        Api.receive_hook_and_return_data!(relabeling_params)["labels"])
+      output = Api.receive_hook_and_return_data!(labeling_params)
+      assert_equal("label", output["pivotal_action"])
+      assert_equal("label", output["labels"])
+      output = Api.receive_hook_and_return_data!(relabeling_params)
+      assert_equal("label", output["pivotal_action"])
+      assert_equal("new_label", output["labels"])
     end
   end
 
@@ -401,10 +394,9 @@ class TestTest < Minitest::Test
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      assert_equal("label",
-        Api.receive_hook_and_return_data!(unlabeling_params)["pivotal_action"])
-      assert_equal(nil,
-        Api.receive_hook_and_return_data!(unlabeling_params)["labels"])
+      output = Api.receive_hook_and_return_data!(unlabeling_params)
+      assert_equal("label", output["pivotal_action"])
+      assert_equal(nil, output["labels"])
     end
   end
 
@@ -415,11 +407,9 @@ class TestTest < Minitest::Test
       params["issue"]["labels"] = [{name: "label"}, {name: "label2"}]
     end
     with_errors do
-      assert_equal("label",
-        Api.receive_hook_and_return_data!(labeling_params)["pivotal_action"])
-      assert_equal("label, label2",
-        Api.receive_hook_and_return_data!(labeling_params)["labels"])
+      output = Api.receive_hook_and_return_data!(labeling_params)
+      assert_equal("label", output["pivotal_action"])
+      assert_equal("label, label2", output["labels"])
     end
   end
 end
-
