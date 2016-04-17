@@ -240,6 +240,19 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_that_it_delivers_a_closed_issue
+    closing_params = complete_issue_params.tap do |params|
+      params["action"] = "closed"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
+        assert_equal("deliver",
+          Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
+      end
+    end
+  end
+
   def test_that_it_ignores_a_closed_and_unmerged_pr
     closing_params = complete_pr_params.tap do |params|
       params["action"] = "closed"
@@ -285,18 +298,6 @@ class TestTest < Minitest::Test
       end
     end
 
-  end
-
-
-  def test_that_it_ignores_on_issue_close
-    closing_params = complete_issue_params.tap do |params|
-      params["action"] = "closed"
-      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
-    end
-    with_errors do
-      assert_equal("ignore",
-        Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
-    end
   end
 
 
