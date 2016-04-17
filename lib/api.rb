@@ -153,10 +153,10 @@ class Api
       Github.post_pivotal_link_on_issue!(payload, piv_url)
       yagpi_action_taken = "create"
     elsif is_assigning?(payload["action"])
-      Pivotal.assign!(pivotal_id, payload["assignee"], payload["url"], payload["author"])
+      Pivotal.assign!(pivotal_id, payload["assignee"])
       yagpi_action_taken = "assign"
     elsif is_labeling?(payload["action"])
-      Pivotal.label!(pivotal_id, payload["labels"], payload["url"], payload["author"])
+      Pivotal.label!(pivotal_id, payload["labels"])
       yagpi_action_taken = "label"
     else
       return(ignore(payload, pivotal_id))

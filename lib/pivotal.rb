@@ -49,7 +49,7 @@ class Pivotal
       pivotal_action.capitalize + " via YAGPI GitHub Webhook."
   end
 
-  def self.comment!(comment, github_url, github_author)
+  def self.source_commit!(comment, github_url, github_author)
     pivotal_conn["source_commits"].post({
       source_commit: {
         commit_id: "",
@@ -60,8 +60,14 @@ class Pivotal
     }.to_json)
   end
 
+  def self.comment!(pivotal_id, comment)
+    pivotal_conn["#{projects_url}/#{pivotal_id}/comments"].post({
+      text: comment
+    }.to_json)
+  end
+
   def self.change_story_state!(pivotal_id, github_url, github_author, pivotal_action)
-    comment!(pivotal_yagpi_comment(pivotal_id, pivotal_action), github_url, github_author)
+    source_commit!(pivotal_yagpi_comment(pivotal_id, pivotal_action), github_url, github_author)
   end
 
 
@@ -81,23 +87,24 @@ class Pivotal
     get_story(pivotal_id)["labels"].map { |h| h["name"] }
   end
 
-  def self.assign!(pivotal_id, assignee, github_url, github_author)
-    pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ labels: labels }.to_json)
+  def self.assign!(pivotal_id, assignee)
     # Pivotal doesn't let you assign stories by API :(
     # And GitHub handles are different from Pivotal handles anyway,
     # so we'll assign by label and clean it up in post.
-    label!(get_story_labels(pivotal_id).reject { |v| v =~ /assign/ } + "assignee:#{assignee}")
-    comment!("Assigned to #{assignee}.", github_url, github_author)
+    label_!(pivotal_id,
+      get_story_labels(pivotal_id).reject { |v| v =~ /assign/ } +
+        ["assignee:#{assignee}", "bugs"])
+    comment!(pivotal_id, "Assigned to #{assignee}.")
   end
 
   def self.label_!(pivotal_id, labels)
     pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ labels: labels }.to_json)
   end
 
-  def self.label!(pivotal_id, labels, github_url, github_author)
+  def self.label!(pivotal_id, labels)
     # Avoid overwritting assignee label
-    labels = get_story_labels(pivotal_id).select { |v| v =~ /assign/ } + labels
+    labels = get_story_labels(pivotal_id).select { |v| v =~ /assign/ } + ["bugs"] + labels
     label_!(pivotal_id, labels)
-    comment!("Labels changed to #{(labels.join(', ') rescue nil)}.", github_url, github_author)
+    comment!(pivotal_id, "Labels changed to #{(labels.join(', ') rescue nil)}.")
   end
 end
