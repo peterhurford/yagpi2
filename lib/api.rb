@@ -150,7 +150,8 @@ class Api
 
     if is_opening?(payload["action"])
       piv_url = Pivotal.create_a_bug!(payload["title"], payload["url"])
-      Github.post_pivotal_link_on_issue!(payload, piv_url)
+      Github.post_pivotal_link_on_issue!(payload["url"], payload["title"],
+                                         payload["body"], piv_url)
       yagpi_action_taken = "create"
     elsif is_assigning?(payload["action"])
       Pivotal.assign!(pivotal_id, payload["assignee"])

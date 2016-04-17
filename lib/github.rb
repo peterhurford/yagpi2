@@ -52,13 +52,13 @@ class Github
     post_to_github!(github_url, nag_message)
   end
 
-  def self.post_pivotal_link_on_issue!(payload, pivotal_url)
-    repo = get_repo_from_url(payload["github_url"])
-    issue_number = get_issue_number_from_url(payload["github_url"])
+  def self.post_pivotal_link_on_issue!(github_url, github_title, github_body, pivotal_url)
+    repo = get_repo_from_url(github_url)
+    issue_number = get_issue_number_from_url(github_url)
     pivotal_id_message = "PIVOTAL: #{pivotal_url}"
-    new_issue_body = payload["github_body"] + "\n\n" + pivotal_id_message
-    client.update_issue(repo, issue_number, payload["github_title"], new_issue_body)
-    post_to_github!(payload["github_url"], pivotal_id_message)
+    new_issue_body = github_body + "\n\n" + pivotal_id_message
+    client.update_issue(repo, issue_number, github_title, new_issue_body)
+    post_to_github!(github_url, pivotal_id_message)
   end
 
   # Github sends a strange param set to ping your app.
