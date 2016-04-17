@@ -314,5 +314,101 @@ class TestTest < Minitest::Test
         Api.receive_hook_and_return_data!(assigning_params)["assignee"])
     end
   end
+
+  def test_that_it_reassigns
+    assigning_params = complete_issue_params.tap do |params|
+      params["action"] = "assigned"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+      params["issue"]["assignee"] = "RolandFreedom"
+    end
+    reassigning_params = complete_issue_params.tap do |params|
+      params["action"] = "assigned"
+      params["issue"]["body"] = "1234567"
+      params["issue"]["assignee"] = "CarlCarlton"
+    end
+    with_errors do
+      assert_equal("assign",
+        Api.receive_hook_and_return_data!(assigning_params)["pivotal_action"])
+      assert_equal("RolandFreedom",
+        Api.receive_hook_and_return_data!(assigning_params)["assignee"])
+      assert_equal("assign",
+        Api.receive_hook_and_return_data!(reassigning_params)["pivotal_action"])
+      assert_equal("RolandFreedom",
+        Api.receive_hook_and_return_data!(reassigning_params)["assignee"])
+    end
+  end
+
+  def test_that_it_unassigns
+    unassigning_params = complete_issue_params.tap do |params|
+      params["action"] = "unassigned"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      assert_equal("unassign",
+        Api.receive_hook_and_return_data!(unassigning_params)["pivotal_action"])
+    end
+  end
+
+  def test_that_it_labels
+    labeling_params = complete_issue_params.tap do |params|
+      params["action"] = "labeled"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+      params["issue"]["labels"] = [{name: "label"}]
+    end
+    with_errors do
+      assert_equal("label",
+        Api.receive_hook_and_return_data!(labeling_params)["pivotal_action"])
+      assert_equal(["label"],
+        Api.receive_hook_and_return_data!(labeling_params)["labels"])
+    end
+  end
+
+  def test_that_it_relabels
+    labeling_params = complete_issue_params.tap do |params|
+      params["action"] = "labeled"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+      params["issue"]["labels"] = [{name: "new_label"}]
+    end
+    relabeling_params = complete_issue_params.tap do |params|
+      params["action"] = "labeled"
+      params["issue"]["body"] = "1234567"
+      params["issue"]["labelee"] = "CarlCarlton"
+    end
+    with_errors do
+      assert_equal("label",
+        Api.receive_hook_and_return_data!(labeling_params)["pivotal_action"])
+      assert_equal(["label"],
+        Api.receive_hook_and_return_data!(labeling_params)["label"])
+      assert_equal("label",
+        Api.receive_hook_and_return_data!(relabeling_params)["pivotal_action"])
+      assert_equal(["new_label"],
+        Api.receive_hook_and_return_data!(relabeling_params)["labels"])
+    end
+  end
+
+  def test_that_it_unlabels
+    unlabeling_params = complete_issue_params.tap do |params|
+      params["action"] = "unlabeled"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+    end
+    with_errors do
+      assert_equal("unlabel",
+        Api.receive_hook_and_return_data!(unlabeling_params)["pivotal_action"])
+    end
+  end
+
+  def test_that_it_multi_labels
+    labeling_params = complete_issue_params.tap do |params|
+      params["action"] = "labeled"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+      params["issue"]["labels"] = [{name: "label"}, {name: "label2"}]
+    end
+    with_errors do
+      assert_equal("label",
+        Api.receive_hook_and_return_data!(labeling_params)["pivotal_action"])
+      assert_equal(["label", "label2"],
+        Api.receive_hook_and_return_data!(labeling_params)["labels"])
+    end
+  end
 end
 
