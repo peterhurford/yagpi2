@@ -32,7 +32,6 @@ class Pivotal
   end
 
   def self.create_a_bug!(github_title, github_url)
-    connect_to_pivotal!
     story = pivotal_conn[projects_url].post(
       bug_template(github_title, github_url))
     JSON.parse(story)["url"]     # Return the Pivotal URL for cross-posting on the issue.
