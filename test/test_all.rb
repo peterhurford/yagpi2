@@ -299,5 +299,20 @@ class TestTest < Minitest::Test
         Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
     end
   end
+
+
+  def test_that_it_assigns
+    assigning_params = complete_issue_params.tap do |params|
+      params["action"] = "assigned"
+      params["issue"]["body"] = "1234567"  # Add a Pivotal ID
+      params["issue"]["assignee"] = "RolandFreedom"
+    end
+    with_errors do
+      assert_equal("assign",
+        Api.receive_hook_and_return_data!(assigning_params)["pivotal_action"])
+      assert_equal("RolandFreedom",
+        Api.receive_hook_and_return_data!(assigning_params)["assignee"])
+    end
+  end
 end
 
