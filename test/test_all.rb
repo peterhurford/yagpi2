@@ -153,19 +153,23 @@ class TestTest < Minitest::Test
 
   def test_that_it_can_find_a_pivotal_url_in_a_body
     with_errors do
-      assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah 1234567 blah blah", "branch_name_here"))
+      assert_equal("1234567",
+        Pivotal.find_pivotal_id("Blah blah 1234567 blah blah", "branch_name_here"))
     end
   end
 
   def test_that_it_can_find_a_pivotal_url_in_a_branch
     with_errors do
-      assert_equal("1234567", Pivotal.find_pivotal_id("Blah blah blah blah", "branch_name_here_1234567"))
+      assert_equal("1234567",
+         Pivotal.find_pivotal_id("Blah blah blah blah", "branch_name_here_1234567"))
     end
   end
 
   def test_pivotal_post_is_parsable
     with_errors do
-      assert(JSON.parse(Pivotal.pivotal_post_message("108405812", "test.com", "peterhurford", "finishes")).is_a?(Hash))
+      assert(JSON.parse(
+        Pivotal.pivotal_post_message("108405812", "test.com", "peterhurford", "finishes")
+      ).is_a?(Hash))
     end
   end
 
@@ -177,7 +181,8 @@ class TestTest < Minitest::Test
 
   def test_api_results
     with_errors do
-      assert_equal("finished", Api.api_results(complete_pr_params, "1234567", "finished")["pivotal_action"])
+      assert_equal("finished",
+        Api.api_results(complete_pr_params, "1234567", "finished")["pivotal_action"])
     end
   end
 
@@ -236,7 +241,8 @@ class TestTest < Minitest::Test
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-          assert_equal("deliver", Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
+          assert_equal("deliver",
+            Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
         end
       end
     end
@@ -252,7 +258,7 @@ class TestTest < Minitest::Test
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
           assert_equal("ignore",
-                       Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
+            Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
         end
       end
     end
@@ -266,7 +272,8 @@ class TestTest < Minitest::Test
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-          assert_equal("ignore", Api.receive_hook_and_return_data!(ignorable_params)["pivotal_action"])
+          assert_equal("ignore",
+            Api.receive_hook_and_return_data!(ignorable_params)["pivotal_action"])
         end
       end
     end
