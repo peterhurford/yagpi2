@@ -92,8 +92,8 @@ class Pivotal
     # And GitHub handles are different from Pivotal handles anyway,
     # so we'll assign by label and clean it up in post.
     label_!(pivotal_id,
-      get_story_labels(pivotal_id).reject { |v| v =~ /assign/ } +
-        ["assignee:#{assignee}", "bugs"])
+      # Keep all labels except the assignee label; replace the assignee label.
+      get_story_labels(pivotal_id).reject { |v| v =~ /assign/ } + ["assignee:#{assignee}"])
     comment!(pivotal_id, "Assigned to #{assignee}.")
   end
 
@@ -102,7 +102,7 @@ class Pivotal
   end
 
   def self.label!(pivotal_id, labels)
-    # Avoid overwritting assignee label
+    # Avoid overwritting assignee and bugs labels
     labels = get_story_labels(pivotal_id).select { |v| v =~ /assign/ } + ["bugs"] + labels
     label_!(pivotal_id, labels)
     comment!(pivotal_id, "Labels changed to #{(labels.join(', ') rescue nil)}.")
