@@ -190,7 +190,7 @@ class TestTest < Minitest::Test
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
           output = Api.receive_hook_and_return_data!(opening_params)
-          assert_equal("pull_request", output["processing_type"])
+          assert_equal("pull_request", output["type"])
           assert_equal("finish", output["pivotal_action"])
         end
       end
@@ -206,7 +206,7 @@ class TestTest < Minitest::Test
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
         Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
           output = Api.receive_hook_and_return_data!(opening_params)
-          assert_equal("pull_request", output["processing_type"])
+          assert_equal("pull_request", output["type"])
           assert_equal("finish", output["pivotal_action"])
         end
       end
@@ -344,8 +344,10 @@ class TestTest < Minitest::Test
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      assert_equal("unassign",
+      assert_equal("assign",
         Api.receive_hook_and_return_data!(unassigning_params)["pivotal_action"])
+      assert_equal(nil,
+        Api.receive_hook_and_return_data!(reassigning_params)["assignee"])
     end
   end
 
@@ -367,12 +369,12 @@ class TestTest < Minitest::Test
     labeling_params = complete_issue_params.tap do |params|
       params["action"] = "labeled"
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
-      params["issue"]["labels"] = [{name: "new_label"}]
+      params["issue"]["labels"] = [{name: "label"}]
     end
     relabeling_params = complete_issue_params.tap do |params|
       params["action"] = "labeled"
       params["issue"]["body"] = "1234567"
-      params["issue"]["labelee"] = "CarlCarlton"
+      params["issue"]["labels"] = [{name: "new_label"}]
     end
     with_errors do
       assert_equal("label",
@@ -392,8 +394,10 @@ class TestTest < Minitest::Test
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      assert_equal("unlabel",
+      assert_equal("label",
         Api.receive_hook_and_return_data!(unlabeling_params)["pivotal_action"])
+      assert_equal([],
+        Api.receive_hook_and_return_data!(labeling_params)["labels"])
     end
   end
 
