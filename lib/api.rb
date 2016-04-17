@@ -45,7 +45,7 @@ class Api
       "url" => payload[type]["html_url"],
       "author" => payload[type]["user"]["login"],
       "labels" => (payload[type]["labels"].map { |v| v["name"] } rescue nil),
-      "assignee" => payload[type]["assignee"]["login"]
+      "assignee" => (payload[type]["assignee"]["login"] rescue nil)
     }
     error!("No action", 500) unless validated_payload["action"].present?
     error!("No URL", 500) unless validated_payload["url"].present?
