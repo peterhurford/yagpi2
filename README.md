@@ -21,7 +21,11 @@ Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 
 * Whenever an issue is filed in the repo, a Pivotal story will be created.  That Pivotal story will be a bug, will be a part of an epic titled "Bugs", and will be tagged with the label "triage" (which indicates for a PM to manually file it as P1, P2, or P3).  The Pivotal story will contain the URL of the GitHub issue in the story description and then the GitHub issue will be commented on with the URL of the Pivotal story.
 
-* When the GitHub issue is closed, the associated story is Delivered.
+* When the GitHub issue is labeled, the labels of the associated Pivotal story will change to match.
+
+* When the GitHub issue is assigned to someone, a new label is created that specifies the assignee. This is because (a) I can't figure out how to use the Pivotal API to assign and (b) there's no easy way to map GitHub usernames to Pivotal usernames.
+
+* When the GitHub issue is closed, the associated story is Delivered. You will have to manually accept it, just like in PRs.
 
 
 ## Installation
