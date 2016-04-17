@@ -39,23 +39,25 @@ class Api
     error!("Malformed payload", 500) unless payload[type].is_a?(Hash)
     validated_payload = {
       "type" => type,
-      "github_title" => payload[type]["title"],
-      "github_body" => payload[type]["body"],
-      "github_action" => payload["action"],
-      "github_url" => payload[type]["html_url"],
-      "github_author" => payload[type]["user"]["login"]
+      "title" => payload[type]["title"],
+      "body" => payload[type]["body"],
+      "action" => payload["action"],
+      "url" => payload[type]["html_url"],
+      "author" => payload[type]["user"]["login"],
+      "labels" => (payload[type]["labels"].map(&:values) rescue nil),
+      "assignee" => payload[type]["assignee"]
     }
-    error!("No action", 500) unless validated_payload["github_action"].present?
-    error!("No URL", 500) unless validated_payload["github_url"].present?
-    error!("No author", 500) unless validated_payload["github_author"].present?
+    error!("No action", 500) unless validated_payload["action"].present?
+    error!("No URL", 500) unless validated_payload["url"].present?
+    error!("No author", 500) unless validated_payload["author"].present?
     validated_payload
   end
 
   def self.validate_pull_request_payload(payload)
     validated_payload = validate_payload(payload, "pull_request")
-    validated_payload["github_branch"] = payload["pull_request"]["head"]["ref"]
+    validated_payload["branch"] = payload["pull_request"]["head"]["ref"]
     validated_payload["merged"] = payload["pull_request"]["merged"]
-    error!("No branch", 500) unless validated_payload["github_branch"].present?
+    error!("No branch", 500) unless validated_payload["branch"].present?
     validated_payload
   end
 
@@ -69,7 +71,7 @@ class Api
   end
 
   def self.nag(payload)
-    nag_result = Github.nag_for_a_pivotal_id!(payload["github_url"])
+    nag_result = Github.nag_for_a_pivotal_id!(payload["url"])
     yagpi_action_taken = nag_result ? "nag" : "nag disabled"
     api_results(payload, nil, yagpi_action_taken)
   end
@@ -86,15 +88,20 @@ class Api
     merge_action == true
   end
 
+  def self.is_assigning?(action)
+    %w(assigned unassigned).include?(action)
+  end
+
+  def self.is_labeling?(action)
+    %w(labeled unlabeled).include?(action)
+  end
+
   def self.api_results(payload, pivotal_id, yagpi_action_taken)
-    {
-      "processing_type" => payload["type"],
-      "detected_github_action" => payload["github_action"],
-      "detected_pivotal_id" => pivotal_id,
-      "detected_github_url" => payload["github_url"],
-      "detected_github_author" => payload["github_author"],
-      "pivotal_action" => yagpi_action_taken
-    }
+    payload.tap do |p|
+      p["labels"] = (p["labels"].join(", ") rescue nil)
+      p["pivotal_id"] = pivotal_id
+      p["pivotal_action"] = yagpi_action_taken
+    end
   end
 
 
@@ -113,19 +120,19 @@ class Api
 
   def self.handle_pull_request_action(payload)
     payload = validate_pull_request_payload(payload)
-    pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], payload["github_branch"])
+    pivotal_id = Pivotal.find_pivotal_id(payload["body"], payload["branch"])
 
-    if is_opening?(payload["github_action"])
+    if is_opening?(payload["action"])
       yagpi_action_taken = ""
       unless pivotal_id.present?
         nag(payload) 
         yagpi_action_taken += "nag"
       end
-      Pivotal.finish!(pivotal_id, payload["github_url"], payload["github_author"])
+      Pivotal.finish!(pivotal_id, payload["url"], payload["author"])
       yagpi_action_taken += "finish"
-    elsif is_closing?(payload["github_action"])
+    elsif is_closing?(payload["action"])
       if is_merging?(payload["merged"])
-        Pivotal.deliver!(pivotal_id, payload["github_url"], payload["github_author"])
+        Pivotal.deliver!(pivotal_id, payload["url"], payload["author"])
         yagpi_action_taken = "deliver"
       else
         yagpi_action_taken = "ignore"
@@ -139,13 +146,19 @@ class Api
 
   def self.handle_issue_action(payload)
     payload = validate_issue_payload(payload)
+    pivotal_id = Pivotal.find_pivotal_id(payload["body"], nil)
 
-    if is_opening?(payload["github_action"])
-      piv_url = Pivotal.create_a_bug!(payload["github_title"], payload["github_url"])
+    if is_opening?(payload["action"])
+      piv_url = Pivotal.create_a_bug!(payload["title"], payload["url"])
       Github.post_pivotal_link_on_issue!(payload, piv_url)
       yagpi_action_taken = "create"
+    elsif is_assigning?(payload["action"])
+      Pivotal.assign!(pivotal_id, payload["assignee"])
+      yagpi_action_taken = "assign"
+    elsif is_labeling?(payload["action"])
+      Pivotal.label!(pivotal_id, payload["labels"])
+      yagpi_action_taken = "label"
     else
-      pivotal_id = Pivotal.find_pivotal_id(payload["github_body"], nil)
       return(ignore(payload, pivotal_id))
     end
     api_results(payload, pivotal_id, yagpi_action_taken)
