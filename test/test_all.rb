@@ -304,7 +304,7 @@ class TestTest < Minitest::Test
     assigning_params = complete_issue_params.tap do |params|
       params["action"] = "assigned"
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
-      params["issue"]["assignee"] = "RolandFreedom"
+      params["issue"]["assignee"] = { "login" => "RolandFreedom" }
     end
     with_errors do
       Pivotal.stub(:assign!, MiniTest::Mock.new) do
@@ -319,12 +319,12 @@ class TestTest < Minitest::Test
     assigning_params = complete_issue_params.tap do |params|
       params["action"] = "assigned"
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
-      params["issue"]["assignee"] = "RolandFreedom"
+      params["issue"]["assignee"] = { "login" => "RolandFreedom" }
     end
     reassigning_params = complete_issue_params.tap do |params|
       params["action"] = "assigned"
       params["issue"]["body"] = "1234567"
-      params["issue"]["assignee"] = "CarlCarlton"
+      params["issue"]["assignee"] = { "login" => "CarlCarlton" }
     end
     with_errors do
       Pivotal.stub(:assign!, MiniTest::Mock.new) do
@@ -356,7 +356,7 @@ class TestTest < Minitest::Test
     labeling_params = complete_issue_params.tap do |params|
       params["action"] = "labeled"
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
-      params["issue"]["labels"] = [{name: "label"}]
+      params["issue"]["labels"] = [{"name" => "label"}]
     end
     with_errors do
       Pivotal.stub(:label!, MiniTest::Mock.new) do
@@ -371,12 +371,12 @@ class TestTest < Minitest::Test
     labeling_params = complete_issue_params.tap do |params|
       params["action"] = "labeled"
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
-      params["issue"]["labels"] = [{name: "label"}]
+      params["issue"]["labels"] = [{"name" => "label"}]
     end
     relabeling_params = complete_issue_params.tap do |params|
       params["action"] = "labeled"
       params["issue"]["body"] = "1234567"
-      params["issue"]["labels"] = [{name: "new_label"}]
+      params["issue"]["labels"] = [{"name" => "new_label"}]
     end
     with_errors do
       Pivotal.stub(:label!, MiniTest::Mock.new) do
@@ -408,7 +408,7 @@ class TestTest < Minitest::Test
     labeling_params = complete_issue_params.tap do |params|
       params["action"] = "labeled"
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
-      params["issue"]["labels"] = [{name: "label"}, {name: "label2"}]
+      params["issue"]["labels"] = [{"name" => "label"}, { "name" => "label2" }]
     end
     with_errors do
       Pivotal.stub(:label!, MiniTest::Mock.new) do
