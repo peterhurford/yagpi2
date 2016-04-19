@@ -154,7 +154,9 @@ class TestTest < Minitest::Test
   def test_that_it_can_find_a_pivotal_url_in_a_body
     with_errors do
       assert_equal("1234567",
-        Pivotal.find_pivotal_id("Blah blah 1234567 blah blah", "branch_name_here"))
+        Pivotal.find_pivotal_id("Blah blah #1234567 blah blah", "branch_name_here"))
+      assert_equal("1234567",
+        Pivotal.find_pivotal_id("Blah blah show/1234567 blah blah", "branch_name_here"))
     end
   end
 
@@ -162,6 +164,15 @@ class TestTest < Minitest::Test
     with_errors do
       assert_equal("1234567",
          Pivotal.find_pivotal_id("Blah blah blah blah", "branch_name_here_1234567"))
+    end
+  end
+
+  def test_that_it_ignores_fake_ids_in_a_body
+    with_errors do
+      assert_equal("9876543",
+        Pivotal.find_pivotal_id("Fake id: 1234567, Real id: #9876543 blah blah", "branch_name_here"))
+      assert_equal("9876543",
+        Pivotal.find_pivotal_id("Fake id: 1234567, Real id: show/9876543 blah blah", "branch_name_here"))
     end
   end
 
