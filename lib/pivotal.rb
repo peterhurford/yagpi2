@@ -1,13 +1,19 @@
 require "rest-client"
 
 class Pivotal
-  def self.regex_for_pivotal_id(what)
-    return false if what.nil?
+  def self.regex_for_pivotal_id_in_branch(what)
+    return nil if what.nil?
     what[/[0-9]{7,}/]
   end
 
+  def self.regex_for_pivotal_id_in_body(what)
+    return nil if what.nil?
+    captures = what[/#[0-9]{7,}/] || what[/show\/[0-9]{7,}/]
+    captures[/[0-9]{7,}/] if captures
+  end
+
   def self.find_pivotal_id(body, branch)
-    regex_for_pivotal_id(body) || regex_for_pivotal_id(branch)
+    regex_for_pivotal_id_in_body(body) || regex_for_pivotal_id_in_branch(branch)
   end
 
 

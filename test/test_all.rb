@@ -192,7 +192,7 @@ class TestTest < Minitest::Test
   def test_that_it_finishes_an_open_pr
     opening_params = complete_pr_params.tap do |params|
       params["action"] = "opened"
-      params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
+      params["pull_request"]["body"] = "#1234567"  # Add a Pivotal ID
     end
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
@@ -208,7 +208,7 @@ class TestTest < Minitest::Test
   def test_that_it_finishes_an_reopened_pr
     opening_params = complete_pr_params.tap do |params|
       params["action"] = "reopened"
-      params["pull_request"]["body"] = "1234567"  # Add a Pivotal ID
+      params["pull_request"]["body"] = "#1234567"  # Add a Pivotal ID
     end
     with_errors do
       Github.stub(:nag_for_a_pivotal_id!, MiniTest::Mock.new) do
