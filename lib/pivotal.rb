@@ -89,13 +89,13 @@ class Pivotal
     change_story_state!(pivotal_id, github_url, github_author, "delivered")
   end
 
-  def self.accept_story!(pivotal_id)
+  def self.accept!(pivotal_id)
     pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ current_state: "accepted" }.to_json)
   end
 
   def self.deliver_and_accept!(pivotal_id, github_url, github_author)
     deliver!(pivotal_id, github_url, github_author)
-    accept_story!(pivotal_id)
+    accept!(pivotal_id)
   end
 
   def self.get_story(pivotal_id)
