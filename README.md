@@ -19,7 +19,10 @@ Because many of our tasks don't involve deploying, we don't have to worry about 
 
 Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 
-* Whenever an issue is filed in the repo, a Pivotal story will be created.  That Pivotal story will be a bug, will be a part of an epic titled "Bugs", and will be tagged with the label "triage" (which indicates for a PM to manually file it as P1, P2, or P3).  The Pivotal story will contain the URL of the GitHub issue in the story description and then the GitHub issue will be commented on with the URL of the Pivotal story.
+* Whenever an issue is filed in the repo, a Pivotal story will be created.
+* If the GitHub issue has any label with "bug" in the name when it is filed, it will be created as a bug. Otherwise it will be created as an unestimated Pivotal story.
+* Bugs will have an additional labels "bugs" and "triage" to put them in a "bugs" epic and flag them for prioritization.
+* The Pivotal story will contain the URL of the GitHub issue in the story description and then the GitHub issue will be commented on with the URL of the Pivotal story.
 
 * When the GitHub issue is labeled, the labels of the associated Pivotal story will change to match.
 
