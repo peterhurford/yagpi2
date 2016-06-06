@@ -162,10 +162,11 @@ class Pivotal
      return nil   # Avoid crashing if we try to label a story that doesn't exist yet.
    end
     # Avoid overwritting assignee and bugs labels
-    labels = labels.select { |v| v =~ /assign/ } + ["bugs"] + labels
-
+    labels = labels.select { |v| v =~ /assign/ } + labels
+    
     if is_bug_by_labels(labels) && !is_bug_by_type(pivotal_id)
       turn_to_bug!(pivotal_id)
+      labels = ["bugs"] + labels
     end
     if !is_bug_by_labels(labels) && is_bug_by_type(pivotal_id)
       turn_to_feature!(pivotal_id)
