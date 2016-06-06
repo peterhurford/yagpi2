@@ -45,7 +45,13 @@ class Pivotal
 
 
   def self.pivotal_verb(pivotal_action)
-    pivotal_action == 'finished' ? "Finishes" : "Delivers"
+    if pivotal_action == "finished"
+      "Finishes"
+    elsif pivotal_action == "delivered"
+      "Delivers"
+    elsif pivotal_action == "accepted"
+      "Accepts"
+    end
   end
 
   def self.pivotal_yagpi_comment(pivotal_id, pivotal_action)
@@ -82,6 +88,10 @@ class Pivotal
 
   def self.deliver!(pivotal_id, github_url, github_author)
     change_story_state!(pivotal_id, github_url, github_author, "delivered")
+  end
+
+  def self.deliver_and_accept!(pivotal_id, github_url, github_author)
+    change_story_state!(pivotal_id, github_url, github_author, "accepted")
   end
 
   def self.get_story(pivotal_id)

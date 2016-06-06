@@ -25,7 +25,7 @@ Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 
 * When the GitHub issue is assigned to someone, a new label is created that specifies the assignee. This is because (a) I can't figure out how to use the Pivotal API to assign and (b) there's no easy way to map GitHub usernames to Pivotal usernames.
 
-* When the GitHub issue is closed, the associated story is Delivered. You will have to manually accept it, just like in PRs.
+* When the GitHub issue is closed, the associated story is Delivered and Accepted.
 
 
 ## Installation
