@@ -38,7 +38,7 @@ class Pivotal
 
 
   def self.create_a_story!(github_title, github_url, labels, assignee, story_type)
-    if has_bug_label?(labels)
+    if story_type == "bug"
       story = story_template(github_title, github_url,
         story_type = "bug", labels = ["bugs", "triage"])
     else
