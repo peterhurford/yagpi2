@@ -467,7 +467,7 @@ class TestTest < Minitest::Test
           assert_equal("bug", output["story_type"])
           output = Api.receive_hook_and_return_data!(open_story_params)
           assert_equal("create", output["pivotal_action"])
-          assert_equal("story", output["story_type"])
+          assert_equal("feature", output["story_type"])
         end
       end
     end
