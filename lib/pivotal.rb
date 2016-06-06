@@ -130,6 +130,27 @@ class Pivotal
     comment!(pivotal_id, "Assigned to #{assignee}.")
   end
 
+  def self.turn_to_bug!(pivotal_id)
+    change_story_type!(pivotal_id, "bug")
+  end
+
+  def self.turn_to_feature!(pivotal_id)
+    change_story_type!(pivotal_id, "feature")
+  end
+
+  def self.change_story_type!(pivotal_id, story_type)
+    pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ story_type: story_type }.to_json)
+  end
+
+  def self.is_bug_by_type(pivotal_id)
+    get_story(pivotal_id)["story_type"] == "bug"
+  end
+
+  def self.is_bug_by_labels(labels)
+    # It must have one bug label other than the bugs epic label.
+    (labels - ["bugs"]).grep(/bug/)
+  end
+
   def self.label_!(pivotal_id, labels)
     pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ labels: labels }.to_json)
   end
@@ -142,6 +163,14 @@ class Pivotal
    end
     # Avoid overwritting assignee and bugs labels
     labels = labels.select { |v| v =~ /assign/ } + ["bugs"] + labels
+
+    if is_bug_by_labels(labels) && !is_bug_by_type(pivotal_id)
+      turn_to_bug!(pivotal_id)
+    end
+    if !is_bug_by_labels(labels) && is_bug_by_type(pivotal_id)
+      turn_to_feature!(pivotal_id)
+    end
+
     label_!(pivotal_id, labels)
     comment!(pivotal_id, "Labels changed to #{(labels.join(', ') rescue nil)}.")
   end
