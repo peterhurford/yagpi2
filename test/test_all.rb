@@ -449,4 +449,24 @@ class TestTest < Minitest::Test
       end
     end
   end
+
+  def test_labeling_a_nonexistant_issue_doesnt_crash
+    with_errors do
+      Pivotal.stub(:label_!, MiniTest::Mock.new) do
+        Pivotal.stub(:comment!, MiniTest::Mock.new) do
+          assert_equal(nil, Pivotal.label!("111111", ["label"]))
+        end
+      end
+    end
+  end
+
+  def test_assigning_a_nonexistant_issue_doesnt_crash
+    with_errors do
+      Pivotal.stub(:label_!, MiniTest::Mock.new) do
+        Pivotal.stub(:comment!, MiniTest::Mock.new) do
+          assert_equal(nil, Pivotal.assign!("111111", "RolandFreedom"))
+        end
+      end
+    end
+  end
 end

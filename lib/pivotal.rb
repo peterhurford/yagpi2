@@ -111,12 +111,17 @@ class Pivotal
   end
 
   def self.assign!(pivotal_id, assignee)
+    begin
+      labels = get_story_labels(pivotal_id)
+   rescue
+     return nil   # Avoid crashing if we try to label a story that doesn't exist yet.
+   end
     # Pivotal doesn't let you assign stories by API :(
     # And GitHub handles are different from Pivotal handles anyway,
     # so we'll assign by label and clean it up in post.
     label_!(pivotal_id,
       # Keep all labels except the assignee label; replace the assignee label.
-      get_story_labels(pivotal_id).reject { |v| v =~ /assign/ } + ["assignee:#{assignee}"])
+      labels.reject { |v| v =~ /assign/ } + ["assignee:#{assignee}"])
     comment!(pivotal_id, "Assigned to #{assignee}.")
   end
 
@@ -125,8 +130,13 @@ class Pivotal
   end
 
   def self.label!(pivotal_id, labels)
+    begin
+      labels = get_story_labels(pivotal_id)
+   rescue
+     return nil   # Avoid crashing if we try to label a story that doesn't exist yet.
+   end
     # Avoid overwritting assignee and bugs labels
-    labels = get_story_labels(pivotal_id).select { |v| v =~ /assign/ } + ["bugs"] + labels
+    labels = labels.select { |v| v =~ /assign/ } + ["bugs"] + labels
     label_!(pivotal_id, labels)
     comment!(pivotal_id, "Labels changed to #{(labels.join(', ') rescue nil)}.")
   end
