@@ -28,18 +28,23 @@ class Pivotal
   end
 
 
-  def self.bug_template(github_title, github_url)
-    { story_type: "bug", labels: ["bugs", "triage"], name: github_title,
-      description: github_url }.to_json
+  def self.story_template(github_title, github_url, story_type = "story", labels = [])
+    { story_type: story_type, labels: labels, name: github_title, description: github_url }.to_json
   end
 
   def self.projects_url
     "projects/#{ENV['PIVOTAL_PROJECT_ID']}/stories"
   end
 
-  def self.create_a_bug!(github_title, github_url, labels, assignee)
-    story = pivotal_conn[projects_url].post(
-      bug_template(github_title, github_url))
+
+  def self.create_a_story!(github_title, github_url, labels, assignee, story_type)
+    if has_bug_label?(labels)
+      story = story_template(github_title, github_url,
+        story_type = "bug", labels = ["bugs", "triage"])
+    else
+      story = story_template(github_title, github_url)
+    end
+    story = pivotal_conn[projects_url].post(story)
     pivotal_url = JSON.parse(story)["url"]
     pivotal_id = regex_for_pivotal_id_in_body(pivotal_url)
     assign!(pivotal_id, assignee) unless assignee.nil?
