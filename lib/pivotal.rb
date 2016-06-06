@@ -45,12 +45,10 @@ class Pivotal
 
 
   def self.pivotal_verb(pivotal_action)
-    if pivotal_action == "finished"
-      "Finishes"
-    elsif pivotal_action == "delivered"
+    if pivotal_action == "delivered"
       "Delivers"
-    elsif pivotal_action == "accepted"
-      "Accepts"
+    else
+      "Finishes"
     end
   end
 
@@ -71,6 +69,7 @@ class Pivotal
     }.to_json)
   end
 
+
   def self.comment!(pivotal_id, comment)
     pivotal_conn["#{projects_url}/#{pivotal_id}/comments"].post({
       text: comment
@@ -90,8 +89,13 @@ class Pivotal
     change_story_state!(pivotal_id, github_url, github_author, "delivered")
   end
 
+  def self.accept_story!(pivotal_id)
+    pivotal_conn["#{projects_url}/#{pivotal_id}"].put({ current_state: "accepted" }.to_json)
+  end
+
   def self.deliver_and_accept!(pivotal_id, github_url, github_author)
-    change_story_state!(pivotal_id, github_url, github_author, "accepted")
+    deliver!(pivotal_id, github_url, github_author)
+    accept_story!(pivotal_id)
   end
 
   def self.get_story(pivotal_id)
