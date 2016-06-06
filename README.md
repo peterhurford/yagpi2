@@ -24,7 +24,7 @@ Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 * Bugs will have an additional labels "bugs" and "triage" to put them in a "bugs" epic and flag them for prioritization.
 * The Pivotal story will contain the URL of the GitHub issue in the story description and then the GitHub issue will be commented on with the URL of the Pivotal story.
 
-* When the GitHub issue is labeled, the labels of the associated Pivotal story will change to match.
+* When the GitHub issue is labeled, the labels of the associated Pivotal story will change to match. If an issue is labeled with a label that contains the word "bug", the story will become a bug. If all labels containing the word "bug" are unlabeled, the story will become a feature.
 
 * When the GitHub issue is assigned to someone, a new label is created that specifies the assignee. This is because (a) I can't figure out how to use the Pivotal API to assign and (b) there's no easy way to map GitHub usernames to Pivotal usernames.
 
