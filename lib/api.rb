@@ -155,7 +155,7 @@ class Api
     pivotal_id = Pivotal.find_pivotal_id(payload["body"], nil)
 
     if is_opening?(payload["action"])
-      story_type = has_bug_label?(payload["labels"]) ? "bug" : "story"
+      story_type = has_bug_label?(payload["labels"]) ? "bug" : "feature"
       piv_url = Pivotal.create_a_story!(payload["title"], payload["url"],
                                       payload["labels"], payload["assignee"],
                                       story_type)
