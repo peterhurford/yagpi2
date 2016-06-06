@@ -157,12 +157,12 @@ class Pivotal
 
   def self.label!(pivotal_id, labels)
     begin
-      labels = get_story_labels(pivotal_id)
+      original_labels = get_story_labels(pivotal_id)
    rescue
      return nil   # Avoid crashing if we try to label a story that doesn't exist yet.
    end
     # Avoid overwritting assignee and bugs labels
-    labels = labels.select { |v| v =~ /assign/ } + labels
+    labels = original_labels.select { |v| v =~ /assign/ } + labels
     
     if is_bug_by_labels(labels) && !is_bug_by_type(pivotal_id)
       turn_to_bug!(pivotal_id)
