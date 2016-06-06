@@ -257,9 +257,11 @@ class TestTest < Minitest::Test
       params["issue"]["body"] = "1234567"  # Add a Pivotal ID
     end
     with_errors do
-      Pivotal.stub(:change_story_state!, MiniTest::Mock.new) do
-        assert_equal("deliver",
-          Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
+      Pivotal.stub(:deliver!, MiniTest::Mock.new) do
+        Pivotal.stub(:accept!, MiniTest::Mock.new) do
+          assert_equal("deliver",
+            Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
+        end
       end
     end
   end
