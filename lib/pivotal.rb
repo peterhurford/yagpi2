@@ -148,7 +148,7 @@ class Pivotal
 
   def self.is_bug_by_labels(labels)
     # It must have one bug label other than the bugs epic label.
-    (labels - ["bugs"]).grep(/bug/)
+    !(labels - ["bugs"]).grep(/bug/).empty?
   end
 
   def self.label_!(pivotal_id, labels)
