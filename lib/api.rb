@@ -149,7 +149,8 @@ class Api
     pivotal_id = Pivotal.find_pivotal_id(payload["body"], nil)
 
     if is_opening?(payload["action"])
-      piv_url = Pivotal.create_a_bug!(payload["title"], payload["url"])
+      piv_url = Pivotal.create_a_bug!(payload["title"], payload["url"],
+                                      payload["labels"], payload["assignee"])
       Github.post_pivotal_link_on_issue!(payload["url"], payload["title"],
                                          payload["body"], piv_url)
       yagpi_action_taken = "create"

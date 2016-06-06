@@ -37,10 +37,13 @@ class Pivotal
     "projects/#{ENV['PIVOTAL_PROJECT_ID']}/stories"
   end
 
-  def self.create_a_bug!(github_title, github_url)
+  def self.create_a_bug!(github_title, github_url, labels, assignee)
     story = pivotal_conn[projects_url].post(
       bug_template(github_title, github_url))
-    JSON.parse(story)["url"]     # Return the Pivotal URL for cross-posting on the issue.
+    pivotal_url = JSON.parse(story)["url"]
+    assign!(pivotal_id, assignee) unless assignee.nil?
+    label!(pivotal_id, labels) unless labels.empty?
+    pivotal_url  # Return the Pivotal URL for cross-posting on the issue.
   end
 
 

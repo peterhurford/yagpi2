@@ -310,7 +310,6 @@ class TestTest < Minitest::Test
         end
       end
     end
-
   end
 
 
@@ -429,6 +428,24 @@ class TestTest < Minitest::Test
         output = Api.receive_hook_and_return_data!(labeling_params)
         assert_equal("label", output["pivotal_action"])
         assert_equal("label, label2", output["labels"])
+      end
+    end
+  end
+
+  def test_that_it_can_use_label_and_assignee_on_issue_open
+    closing_params = complete_issue_params.tap do |params|
+      params["action"] = "opened"
+      params["issue"]["labels"] = [{"name" => "label"}]
+      params["issue"]["assignee"] = { "login" => "RolandFreedom" }
+    end
+    with_errors do
+      Github.stub(:post_pivotal_link_on_issue!, MiniTest::Mock.new) do
+        Pivotal.stub(:create_a_bug!, MiniTest::Mock.new) do
+          output = Api.receive_hook_and_return_data!(closing_params)
+          assert_equal("create", output["pivotal_action"])
+          assert_equal("label", output["labels"])
+          assert_equal("RolandFreedom", output["assignee"])
+        end
       end
     end
   end
