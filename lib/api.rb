@@ -96,11 +96,12 @@ class Api
     %w(labeled unlabeled).include?(action)
   end
 
-  def self.api_results(payload, pivotal_id, yagpi_action_taken)
+  def self.api_results(payload, pivotal_id, yagpi_action_taken, story_type = "NA")
     payload.tap do |p|
       p["labels"] = (p["labels"].join(", ") rescue nil)
       p["pivotal_id"] = pivotal_id
       p["pivotal_action"] = yagpi_action_taken
+      p["story_type"] = story_type
     end
   end
 
@@ -144,13 +145,20 @@ class Api
   end
 
 
+  def self.has_bug_label?(labels)
+    return false if labels.nil? || labels.empty?
+    !labels.grep(/bug/).empty?
+  end
+
   def self.handle_issue_action(payload)
     payload = validate_issue_payload(payload)
     pivotal_id = Pivotal.find_pivotal_id(payload["body"], nil)
 
     if is_opening?(payload["action"])
-      piv_url = Pivotal.create_a_bug!(payload["title"], payload["url"],
-                                      payload["labels"], payload["assignee"])
+      story_type = has_bug_label?(payload["labels"]) ? "bug" : "story"
+      piv_url = Pivotal.create_a_story!(payload["title"], payload["url"],
+                                      payload["labels"], payload["assignee"],
+                                      story_type)
       Github.post_pivotal_link_on_issue!(payload["url"], payload["title"],
                                          payload["body"], piv_url)
       yagpi_action_taken = "create"
@@ -166,6 +174,6 @@ class Api
     else
       return(ignore(payload, pivotal_id))
     end
-    api_results(payload, pivotal_id, yagpi_action_taken)
+    api_results(payload, pivotal_id, yagpi_action_taken, story_type)
   end
 end

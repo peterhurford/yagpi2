@@ -304,7 +304,7 @@ class TestTest < Minitest::Test
     end
     with_errors do
       Github.stub(:post_pivotal_link_on_issue!, MiniTest::Mock.new) do
-        Pivotal.stub(:create_a_bug!, MiniTest::Mock.new) do
+        Pivotal.stub(:create_a_story!, MiniTest::Mock.new) do
           assert_equal("create",
            Api.receive_hook_and_return_data!(closing_params)["pivotal_action"])
         end
@@ -440,11 +440,34 @@ class TestTest < Minitest::Test
     end
     with_errors do
       Github.stub(:post_pivotal_link_on_issue!, MiniTest::Mock.new) do
-        Pivotal.stub(:create_a_bug!, MiniTest::Mock.new) do
+        Pivotal.stub(:create_a_story!, MiniTest::Mock.new) do
           output = Api.receive_hook_and_return_data!(closing_params)
           assert_equal("create", output["pivotal_action"])
           assert_equal("label", output["labels"])
           assert_equal("RolandFreedom", output["assignee"])
+        end
+      end
+    end
+  end
+
+  def test_that_it_creates_a_bug_for_bug_stories_and_a_story_for_normal_stories
+    open_bug_params = complete_issue_params.tap do |params|
+      params["action"] = "opened"
+      params["issue"]["labels"] = [{"name" => "bug"}]
+    end
+    open_story_params = complete_issue_params.tap do |params|
+      params["action"] = "opened"
+      params["issue"]["labels"] = [{"name" => "not"}]
+    end
+    with_errors do
+      Github.stub(:post_pivotal_link_on_issue!, MiniTest::Mock.new) do
+        Pivotal.stub(:create_a_story!, MiniTest::Mock.new) do
+          output = Api.receive_hook_and_return_data!(open_bug_params)
+          assert_equal("create", output["pivotal_action"])
+          assert_equal("bug", output["story_type"])
+          output = Api.receive_hook_and_return_data!(open_story_params)
+          assert_equal("create", output["pivotal_action"])
+          assert_equal("story", output["story_type"])
         end
       end
     end
