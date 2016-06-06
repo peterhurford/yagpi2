@@ -8,7 +8,7 @@ class Pivotal
 
   def self.regex_for_pivotal_id_in_body(what)
     return nil if what.nil?
-    captures = what[/#[0-9]{7,}/] || what[/show\/[0-9]{7,}/]
+    captures = what[/#[0-9]{7,}/] || what[/show\/[0-9]{7,}/] || what[/stories\/[0-9]{7,}/]
     captures[/[0-9]{7,}/] if captures
   end
 
@@ -41,6 +41,7 @@ class Pivotal
     story = pivotal_conn[projects_url].post(
       bug_template(github_title, github_url))
     pivotal_url = JSON.parse(story)["url"]
+    pivotal_id = regex_for_pivotal_id_in_body(pivotal_url)
     assign!(pivotal_id, assignee) unless assignee.nil?
     label!(pivotal_id, labels) unless labels.empty?
     pivotal_url  # Return the Pivotal URL for cross-posting on the issue.
