@@ -29,7 +29,7 @@ class Pivotal
 
 
   def self.story_template(github_title, github_url, story_type = "story", labels = [])
-    { story_type: story_type, labels: labels, name: github_title, description: github_url }.to_json
+    { kind: story_type, labels: labels, name: github_title, description: github_url }.to_json
   end
 
   def self.projects_url
