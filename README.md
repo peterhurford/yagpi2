@@ -1,6 +1,7 @@
 ## YAGPI2 (Yet Another GitHub - Pivotal Integration) <a href="https://travis-ci.org/peterhurford/yagpi2"><img src="https://img.shields.io/travis/peterhurford/yagpi2.svg"></a> <a href="https://github.com/peterhurford/yagpi2/tags"><img src="https://img.shields.io/github/tag/peterhurford/yagpi2.svg"></a>
 
-I did a lot of Googling and found about three dozen different ways to connect GitHub and Pivotal Tracker. This includes very popular choices like the Pivotal Tracker GitHub webhook and Zapier.
+I did a lot of Googling and found about three dozen different ways to connect GitHub and Pivotal Tracker. This includes very popular choices like the Pivotal Tracker GitHub webhook and Zapier. I didn't like any of them. So I made my own!
+
 
 ## Workflow Automation
 
@@ -35,9 +36,11 @@ Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 
 1.) Clone this repo.
 
-2.) Host YAGPI on a server.
+2.) Host YAGPI on a server, like Heroku.
 
-3.) Set up a GitHub webhook to connect to `/github_hook` on the hosted domain.
+3.) Set up ENV vars on the server -- `GITHUB_OAUTH_TOKEN`, `PIVOTAL_API_KEY`, `PIVOTAL_PROJECT_ID`, and `SECRET_TOKEN` (the token that lets the web hook work, see step 4).
+
+4.) Set up a GitHub webhook to connect to `/github_hook` on the hosted domain.
 
 ![](http://puu.sh/lpqwM/472669578f.png)
 
