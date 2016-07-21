@@ -19,10 +19,14 @@ post '/github_hook' do
   Api.receive_hook_and_return_data!(JSON.parse(payload)).to_json
 end
 
+def secret_token
+  @token ||= ENV["SECRET_TOKEN"]
+end
+
 def verify_signature(payload)
+  Api.error!('No secret token', 500) unless secret_token.present?
   signature = 'sha1=' +
-    OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'),
-                            ENV['SECRET_TOKEN'], payload)
+    OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), secret_token, payload)
 
   unless Rack::Utils.secure_compare(signature, request.env['HTTP_X_HUB_SIGNATURE'])
     return halt 500, "Signatures didn't match!" 

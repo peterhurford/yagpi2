@@ -38,7 +38,12 @@ Additionally, YAGPI will automatically mirror GitHub issues on Pivotal:
 
 2.) Host YAGPI on a server, like Heroku.
 
-3.) Set up ENV vars on the server -- `GITHUB_OAUTH_TOKEN`, `PIVOTAL_API_KEY`, `PIVOTAL_PROJECT_ID`, and `SECRET_TOKEN` (the token that lets the web hook work, see step 4).
+3.) Set the following ENV vars on your server:
+
+* `GITHUB_PAT` - Generate this [from your settings](https://github.com/settings/tokens). Be sure to give it repo access.
+* `PIVOTAL_API_KEY` - Get this from [your Pivotal settings](https://www.pivotaltracker.com/profile).
+* `PIVOTAL_PROJECT_ID` - This is the numeric value of your Pivotal project (e.g., if your Pivotal URL is https://www.pivotaltracker.com/n/projects/12345, set this var to 12345).
+* `SECRET_TOKEN` - This has to match the token set in the webhook, but can be any value.
 
 4.) Set up a GitHub webhook to connect to `/github_hook` on the hosted domain.
 

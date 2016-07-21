@@ -3,8 +3,8 @@ require "octokit"
 class Github
   def self.client
     @client = begin
-      Api.error!('GITHUB_OAUTH_TOKEN not set', 500) unless ENV['GITHUB_OAUTH_TOKEN'].present?
-      Octokit::Client.new(:access_token => ENV["GITHUB_OAUTH_TOKEN"])
+      Api.error!('GITHUB_PAT not set', 500) unless ENV['GITHUB_PAT'].present?
+      Octokit::Client.new(:access_token => ENV["GITHUB_PAT"])
     end
   end
 
