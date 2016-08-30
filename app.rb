@@ -4,6 +4,8 @@ require "json"
 
 require "./lib/api"
 
+set :bind, '0.0.0.0'
+
 get "/" do
   Api.receive_ping.to_json
 end
